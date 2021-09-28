@@ -25,43 +25,27 @@ package grid.neighborhood.regulare.square;
 
 import grid.neighborhood.INeighborhood;
 import grid.regular.square.RegularSquareGrid;
-import org.chocosolver.util.objects.setDataStructures.ISet;
-import org.chocosolver.util.objects.setDataStructures.SetFactory;
+
+import java.util.stream.IntStream;
 
 /**
  * The height-connected neighborhood in a regular square grid.
  */
 public class HeightConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
 
-    public ISet getNeighbors(T grid, int i) {
+    public int[] getNeighbors(T grid, int i) {
         int nbCols = grid.getNbCols();
         int nbRows = grid.getNbRows();
-        ISet neighbors = SetFactory.makeBitSet(0);
-        if (i % nbCols != 0) {
-            neighbors.add(i - 1);
-        }
-        if (i >= nbCols) {
-            neighbors.add(i - nbCols);
-        }
-        if ((i + 1) % nbCols != 0) {
-            neighbors.add(i + 1);
-        }
-        if (i < nbCols * (nbRows - 1)) {
-            neighbors.add(i + nbCols);
-        }
-        if ((i < nbCols * (nbRows - 1)) && ((i + 1) % nbCols != 0)) {
-            neighbors.add(i + nbCols + 1);
-        }
-        if ((i < nbCols * (nbRows - 1)) && (i % nbCols != 0)) {
-            neighbors.add(i + nbCols - 1);
-        }
-        if ((i % nbCols != 0) && i >= nbCols) {
-            neighbors.add(i - nbCols - 1);
-        }
-        if (((i + 1) % nbCols != 0) && i >= nbCols) {
-            neighbors.add(i - nbCols + 1);
-        }
-        return neighbors;
+        int left = i % nbCols != 0 ? i - 1 : -1;
+        int right = (i + 1) % nbCols != 0 ? i + 1 : -1;
+        int top = i >= nbCols ? i - nbCols : -1;
+        int bottom = i < nbCols * (nbRows - 1) ? i + nbCols : -1;
+        int leftTop = (i % nbCols != 0) && i >= nbCols ? i - nbCols - 1 : -1;
+        int rightTop = ((i + 1) % nbCols != 0) && i >= nbCols ? i - nbCols + 1 : -1;
+        int leftBottom = (i < nbCols * (nbRows - 1)) && (i % nbCols != 0) ? i + nbCols - 1 : -1;
+        int rightBottom = (i < nbCols * (nbRows - 1)) && ((i + 1) % nbCols != 0) ? i + nbCols + 1 : -1;
+        return IntStream.of(left, right, top, bottom, leftTop, rightTop, leftBottom, rightBottom)
+                .filter(x -> x >=0).toArray();
     }
 
 }

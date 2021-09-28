@@ -29,22 +29,25 @@ import grid.regular.square.PartialRegularSquareGrid;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The 2-wide height-connected neighborhood in a regular square grid.
  */
 public class PartialTwoWideHeightConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
-    public ISet getNeighbors(T grid, int i) {
+    public int[] getNeighbors(T grid, int i) {
         PartialHeightConnected height = Neighborhoods.PARTIAL_HEIGHT_CONNECTED;
-        ISet neighbors = SetFactory.makeBitSet(0);
-        ISet heightneigh = height.getNeighbors(grid, i);
+        int[] heightneigh = height.getNeighbors(grid, i);
+        List<Integer> neighbors = new ArrayList<>();
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : height.getNeighbors(grid, neigh)) {
                 neighbors.add(nneigh);
             }
         }
-        return neighbors;
+        return neighbors.stream().mapToInt(x -> x).toArray();
     }
 
 }

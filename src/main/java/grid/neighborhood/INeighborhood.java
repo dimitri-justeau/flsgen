@@ -40,7 +40,7 @@ public interface INeighborhood<T extends Grid> {
      * @param i    The index of a cell.
      * @return The neighbors of i in the grid.
      */
-    ISet getNeighbors(T grid, int i);
+    int[] getNeighbors(T grid, int i);
 
     /**
      * @param grid    A grid.
@@ -53,7 +53,7 @@ public interface INeighborhood<T extends Grid> {
         UndirectedGraph g = new UndirectedGraph(model, nbCells, setType, false);
         for (int i = 0; i < nbCells; i++) {
             g.addNode(i);
-            ISet neighbors = getNeighbors(grid, i);
+            int[] neighbors = getNeighbors(grid, i);
             for (int ii : neighbors) {
                 g.addEdge(i, ii);
             }
@@ -76,7 +76,7 @@ public interface INeighborhood<T extends Grid> {
             partialGraph.addNode(i);
         }
         for (int i : cells) {
-            ISet neighbors = getNeighbors(grid, i);
+            int[] neighbors = getNeighbors(grid, i);
             for (int ii : neighbors) {
                 if (partialGraph.getNodes().contains(ii)) {
                     partialGraph.addEdge(i, ii);
@@ -112,7 +112,7 @@ public interface INeighborhood<T extends Grid> {
             partialGraph.addNode(i);
         }
         for (int i : cells) {
-            ISet neighbors = getNeighbors(grid, i);
+            int[] neighbors = getNeighbors(grid, i);
             for (int ii : neighbors) {
                 if (partialGraph.getNodes().contains(ii)) {
                     partialGraph.addEdge(i, ii);

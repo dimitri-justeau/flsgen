@@ -28,29 +28,22 @@ import grid.regular.square.PartialRegularSquareGrid;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
 
+import java.util.stream.IntStream;
+
 /**
  * The four-connected neighborhood in a partial regular square grid.
  */
 public class PartialFourConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
-    public ISet getNeighbors(T grid, int partialIdx) {
+    public int[] getNeighbors(T grid, int partialIdx) {
         int idx = grid.getCompleteIndex(partialIdx);
         int nbCols = grid.getNbCols();
         int nbRows = grid.getNbRows();
-        ISet neighbors = SetFactory.makeBitSet(0);
-        if (idx % nbCols != 0 && !grid.getDiscardSet().contains(idx - 1)) {
-            neighbors.add(grid.getPartialIndex(idx - 1));
-        }
-        if ((idx + 1) % nbCols != 0 && !grid.getDiscardSet().contains(idx + 1)) {
-            neighbors.add(grid.getPartialIndex(idx + 1));
-        }
-        if (idx >= nbCols && !grid.getDiscardSet().contains(idx - nbCols)) {
-            neighbors.add(grid.getPartialIndex(idx - nbCols));
-        }
-        if (idx < nbCols * (nbRows - 1) && !grid.getDiscardSet().contains(idx + nbCols)) {
-            neighbors.add(grid.getPartialIndex(idx + nbCols));
-        }
-        return neighbors;
+        int left = idx % nbCols != 0 ? grid.getPartialIndex(idx - 1) : -1;
+        int right = (idx + 1) % nbCols != 0 ? grid.getPartialIndex(idx + 1) : -1;
+        int top = idx >= nbCols ? grid.getPartialIndex(idx - nbCols) : -1;
+        int bottom = idx < nbCols * (nbRows - 1) ? grid.getPartialIndex(idx + nbCols) : -1;
+        return IntStream.of(left, right, top, bottom).filter(x -> x >= 0).toArray();
     }
 
 }
