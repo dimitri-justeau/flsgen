@@ -19,6 +19,7 @@ import javax.media.jai.RasterFactory;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -55,7 +56,7 @@ public class PolyominoGenerator {
 
     public PolyominoGenerator(RegularSquareGrid grid, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
         this.grid = grid;
-        double[][] fullDem = diamondSquare(1000, 1.4);
+        double[][] fullDem = diamondSquare(1000, 2);
         dem = IntStream.range(0, this.grid.getNbCells())
                 .mapToDouble(i -> {
                     int[] c = grid.getCoordinatesFromIndex(i);
@@ -79,7 +80,7 @@ public class PolyominoGenerator {
     }
 
     public boolean generatePolyomino(int size, boolean noHole) {
-        assert avalaibleCells.size() > size;
+        assert avalaibleCells.size() >= size;
         int[] cells = new int[size];
         ArrayList<Integer> neigh = new ArrayList<>();
         cells[0] = getRandomCell(avalaibleCells);
@@ -197,7 +198,7 @@ public class PolyominoGenerator {
         neigh.sort((t1, t2) -> {
             if (dem[t1] == dem[t2]) {
                 return 0;
-            } else if (dem[t1] > dem[t2]) {
+            } else if (dem[t1] < dem[t2]) {
                 return -1;
             }
             return 1;
@@ -206,7 +207,13 @@ public class PolyominoGenerator {
         if (noHole) {
             boolean ok = false;
             while (!ok && neigh.size() > 0) {
-                next = neigh.get(neigh.size() - 1);
+                // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
+                int chance = randomInt(0, 101);
+                int minIdx = 0;
+                int maxIdx = neigh.size() * (chance / 100);
+                int idx = randomInt(minIdx, maxIdx);
+                //
+                next = neigh.get(idx);
                 boolGrid[next] = true;
                 nbAvailableCells--;
                 if (assertNoHole()) {
@@ -215,12 +222,17 @@ public class PolyominoGenerator {
                 } else {
                     boolGrid[next] = false;
                     nbAvailableCells++;
-                    neigh.remove(neigh.size() - 1);
+                    neigh.remove(idx);
                 }
             }
         } else {
-//            next = getRandomCell(neigh);
-            next = neigh.get(neigh.size() - 1);
+            // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
+            int chance = randomInt(0, 21);
+            int minIdx = 0;
+            int maxIdx = (neigh.size() * chance) / 100;
+            int idx = minIdx == maxIdx ? minIdx : randomInt(minIdx, maxIdx);
+            //
+            next = neigh.get(idx);
             cells[n] = next;
             boolGrid[next] = true;
             nbAvailableCells--;
@@ -319,11 +331,18 @@ public class PolyominoGenerator {
     }
 
     public double randomDouble(double min, double max) {
-        return ThreadLocalRandom.current().nextDouble(min, max);
+        return new SecureRandom().nextDouble() * (max - min) + min;
+//        return ThreadLocalRandom.current().nextDouble(min, max);
+    }
+
+    public int randomInt(int min, int max) {
+        return new SecureRandom().nextInt(max - min) + min;
+//        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     public int getRandomCell(List<Integer> cells) {
-        return cells.get(ThreadLocalRandom.current().nextInt(0, cells.size()));
+//        return cells.get(ThreadLocalRandom.current().nextInt(0, cells.size()));
+        return cells.get(new SecureRandom().nextInt(cells.size()));
     }
 
     public void exportDem(int x, int y, double resolution, String epsg, String dest) throws IOException, FactoryException {
@@ -370,19 +389,19 @@ public class PolyominoGenerator {
         int nCol = 200;
         RegularSquareGrid grid = new RegularSquareGrid(nRow, nCol);
         INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
-        INeighborhood bufferNeighborhood = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
+        INeighborhood bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(3);
         EquivalentPatchSizesDistributions patchSizes = new EquivalentPatchSizesDistributions(
                 grid,
-                20,
-                30,
-                250,
-                250,
+                0,
+                5,
+                800,
+                800,
                 10,
-                1000
+                10000
         );
         Solver solver = patchSizes.model.getSolver();
         solver.showStatistics();
-        solver.setSearch(Search.domOverWDegRefSearch(patchSizes.patchSizes));
+        solver.setSearch(Search.randomSearch(patchSizes.patchSizes, System.currentTimeMillis()));
         for (int l = 0; l < 10; l++) {
             if (solver.solve()) {
                 System.out.println("---------------------  Landscape " + (l + 1) + "  ----------------------------------------------");
@@ -417,26 +436,26 @@ public class PolyominoGenerator {
                     System.out.println("FAIL");
                 } else {
                     System.out.println("Feasible landscape found after " + n + " tries");
-                    for (int r = 0; r < nRow; r++) {
-                        System.out.printf("  |");
-                        for (int c = 0; c < nCol; c++) {
-                            if (polyominoGenerator.boolGrid[grid.getIndexFromCoordinates(r, c)]) {
-                                System.out.printf(" # ");
-                            } else if (polyominoGenerator.bufferGrid[grid.getIndexFromCoordinates(r, c)]) {
-                                System.out.printf(" · ");
-                            } else {
-                                System.out.printf("   ");
-                            }
-                        }
-                        System.out.printf("|\n");
-                    }
+//                    for (int r = 0; r < nRow; r++) {
+//                        System.out.printf("  |");
+//                        for (int c = 0; c < nCol; c++) {
+//                            if (polyominoGenerator.boolGrid[grid.getIndexFromCoordinates(r, c)]) {
+//                                System.out.printf(" # ");
+//                            } else if (polyominoGenerator.bufferGrid[grid.getIndexFromCoordinates(r, c)]) {
+//                                System.out.printf(" · ");
+//                            } else {
+//                                System.out.printf("   ");
+//                            }
+//                        }
+//                        System.out.printf("|\n");
+//                    }
                     polyominoGenerator.exportRaster(
                             0, 0, 0.0001, "EPSG:4326",
-                            "/home/djusteau/Documents/testPolyomino/testb_" + l  +".tif"
+                            "/home/djusteau/Documents/testPolyomino/testc_" + l  +".tif"
                     );
                     polyominoGenerator.exportDem(
                             0, 0, 0.0001, "EPSG:4326",
-                            "/home/djusteau/Documents/testPolyomino/testb_" + l  +"_DEM.tif"
+                            "/home/djusteau/Documents/testPolyomino/testc_" + l  +"_DEM.tif"
                     );
                 }
             } else {

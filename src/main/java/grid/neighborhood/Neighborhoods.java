@@ -39,4 +39,11 @@ public class Neighborhoods {
     public final static PartialTwoWideFourConnected PARTIAL_TWO_WIDE_FOUR_CONNECTED = new PartialTwoWideFourConnected();
     public final static PartialTwoWideHeightConnected PARTIAL_TWO_WIDE_HEIGHT_CONNECTED = new PartialTwoWideHeightConnected();
 
+    public final static KWideFourConnected K_WIDE_FOUR_CONNECTED(int k) {
+        return new KWideFourConnected(k);
+    }
+
+    public final static KWideHeighConnected K_WIDE_HEIGHT_CONNECTED(int k) {
+        return new KWideHeighConnected(k);
+    }
 }
