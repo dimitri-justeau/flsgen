@@ -1,8 +1,11 @@
 package solver;
 
 import grid.regular.square.RegularSquareGrid;
+import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.variables.IntVar;
+
+import java.util.Arrays;
 
 /**
  * Class representing a landscape class that must be present in the generated landscape
@@ -78,7 +81,57 @@ public class LandscapeClass {
         model.arithm(sum, "<=", maxTotal).post();
     }
 
+    public void setLandscapeProportion(int minProportion, int maxProportion) throws ValueException {
+        if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
+            throw new ValueException("Min and max class proportion must be between 0 and 100");
+        }
+        if (maxProportion < minProportion) {
+            throw  new ValueException("Max proportion must be greater than or equal to min proportion");
+        }
+        int min = grid.getNbCells() * minProportion / 100;
+        int max = grid.getNbCells() * maxProportion / 100;
+        setTotalSize(min, max);
+    }
+
     public void setAllPatchesDifferentSize() {
         model.allDifferentExcept0(patchSizes).post();
+    }
+
+    public int getNbPatches() {
+        if (nbPatches.isInstantiated()) {
+            return nbPatches.getValue();
+        }
+        return -1;
+    }
+
+    public int[] getPatchSizes() {
+        return Arrays.stream(patchSizes)
+                .mapToInt(v -> v.isInstantiated() ? v.getValue() : -1)
+                .filter(i -> i > 0)
+                .toArray();
+    }
+
+    public int getTotalSize() {
+        if (sum.isInstantiated()) {
+            return sum.getValue();
+        }
+        return -1;
+    }
+    public double getMesh() {
+        if (squaredPatchSizes != null) {
+            if (squaredSum.isInstantiated()) {
+                return squaredSum.getValue() / grid.getNbCells();
+            }
+            return -1;
+        } else {
+            int sSum = 0;
+            for (IntVar p : patchSizes) {
+                if (!p.isInstantiated()) {
+                    return -1;
+                }
+                sSum += p.getValue() * p.getValue();
+            }
+            return sSum / grid.getNbCells();
+        }
     }
 }

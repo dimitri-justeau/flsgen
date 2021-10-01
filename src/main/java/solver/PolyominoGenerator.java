@@ -12,6 +12,7 @@ import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
+import org.json.simple.parser.ParseException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -382,6 +383,44 @@ public class PolyominoGenerator {
         GridCoverage2D gc = gcf.create("generated_landscape", rast, referencedEnvelope);
         GeoTiffWriter writer = new GeoTiffWriter(new File(dest));
         writer.write(gc,null);
+    }
+
+    public void generateFromJSONStructure(String jsonPath, String dest) throws IOException, ParseException, FactoryException {
+        Solution s = Solution.fromJSON(jsonPath);
+
+        PolyominoGenerator polyominoGenerator = null;
+        boolean b = false;
+        int maxTry = 100;
+        int n = 0;
+
+        while (!b && n < maxTry) {
+            n++;
+            b = true;
+            polyominoGenerator = new PolyominoGenerator(grid, neighborhood, bufferNeighborhood);
+            for (int i = 0; i < s.names.length; i++) {
+                System.out.println("---------------------  Generating patches for class " + s.names[i] + "  ----------------------------------------------");
+                int nbPatches = s.nbPatches[i];
+                int[] sizes = s.patchSizes[i];
+                System.out.println("Number of patches = " + nbPatches);
+                System.out.println("Patch sizes = " + Arrays.toString(sizes));
+                for (int k : sizes) {
+                    System.out.println("Generating patch of size " + k);
+                    b &= polyominoGenerator.generatePolyomino(k, false);
+                    if (!b) {
+                        break;
+                    }
+                }
+            }
+            if (!b) {
+                System.out.println("FAIL");
+            } else {
+                System.out.println("Feasible landscape found after " + n + " tries");
+                polyominoGenerator.exportRaster(
+                        0, 0, 0.0001, "EPSG:4326",
+                        dest
+                );
+            }
+        }
     }
 
     public static void main(String[] args) throws IOException, FactoryException {
