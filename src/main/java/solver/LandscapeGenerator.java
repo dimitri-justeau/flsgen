@@ -47,18 +47,22 @@ public class LandscapeGenerator {
             NeighborhoodSelectionStrategy.RANDOM
     };
 
+    public LandscapeStructure structure;
     public RegularSquareGrid grid;
+    public int nbClasses;
     public INeighborhood neighborhood;
     public INeighborhood bufferNeighborhood;
     public int[] rasterGrid;
-    public boolean[] bufferGrid;
+    public int[] bufferGrid;
     public int[][] neighbors;
     public double[] dem;
     public int nbAvailableCells;
-    public List<Integer> avalaibleCells;
+    public List<Integer> avalaibleCells[];
 
-    public LandscapeGenerator(RegularSquareGrid grid, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
-        this.grid = grid;
+    public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
+        this.structure = structure;
+        this.grid = new RegularSquareGrid(structure.nbRows, structure.nbCols);
+        this.nbClasses = structure.names.length;
         double[][] fullDem = diamondSquare(1000, 2);
         dem = IntStream.range(0, this.grid.getNbCells())
                 .mapToDouble(i -> {
@@ -72,20 +76,25 @@ public class LandscapeGenerator {
             neighbors[i] = neighborhood.getNeighbors(grid, i);
         }
         this.rasterGrid = new int[grid.getNbCells()];
-        this.bufferGrid = new boolean[grid.getNbCells()];
-        this.avalaibleCells = new ArrayList<>();
+        this.bufferGrid = new int[grid.getNbCells()];
+        this.avalaibleCells = new ArrayList[nbClasses];
+        for (int i = 0; i < nbClasses; i++) {
+            avalaibleCells[i] = new ArrayList<>();
+        }
         for (int i = 0; i < grid.getNbCells(); i++) {
             rasterGrid[i] = NODATA;
-            bufferGrid[i] = false;
-            avalaibleCells.add(i);
+            bufferGrid[i] = NODATA;
+            for (int j = 0; j < nbClasses; j++) {
+                avalaibleCells[j].add(i);
+            }
         }
         this.nbAvailableCells = grid.getNbCells();
     }
 
     public boolean generatePolyomino(int classId, int size, boolean noHole) {
-        assert avalaibleCells.size() >= size;
+        assert avalaibleCells[classId].size() >= size;
         int[] cells = new int[size];
-        cells[0] = getRandomCell(avalaibleCells);
+        cells[0] = getRandomCell(avalaibleCells[classId]);
         int current = cells[0];
         int n = 1;
         rasterGrid[current] = classId;
@@ -101,15 +110,15 @@ public class LandscapeGenerator {
         }
         int sizeBuff = 0;
         for (int i : cells) {
-            int idxI = avalaibleCells.indexOf(i);
-            avalaibleCells.remove(idxI);
+            int idxI = avalaibleCells[classId].indexOf(i);
+            avalaibleCells[classId].remove(idxI);
             for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
                 if (rasterGrid[j] == NODATA) {
                     sizeBuff++;
-                    if (!bufferGrid[j]) {
-                        bufferGrid[j] = true;
-                        int idxJ = avalaibleCells.indexOf(j);
-                        avalaibleCells.remove(idxJ);
+                    if (bufferGrid[j] == NODATA) {
+                        bufferGrid[j] = classId;
+                        int idxJ = avalaibleCells[classId].indexOf(j);
+                        avalaibleCells[classId].remove(idxJ);
                     }
                 }
             }
@@ -189,7 +198,7 @@ public class LandscapeGenerator {
         List<Integer> neigh = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             for (int j : neighbors[cells[i]]) {
-                if (rasterGrid[j] == NODATA && !bufferGrid[j]) {
+                if (rasterGrid[j] == NODATA && bufferGrid[j] != classId) {
                     neigh.add(j);
                 }
             }
@@ -246,7 +255,7 @@ public class LandscapeGenerator {
         List<Integer> neigh = new ArrayList<>();
         for (int i = n - 1; i >= 0; i--) {
             for (int j : neighbors[cells[i]]) {
-                if (rasterGrid[j] == NODATA && !bufferGrid[j]) {
+                if (rasterGrid[j] == NODATA && bufferGrid[j] != classId) {
                     neigh.add(j);
                 }
             }
@@ -383,7 +392,7 @@ public class LandscapeGenerator {
         writer.write(gc,null);
     }
 
-    public void generateFromSolution(Solution solution, String dest) throws IOException, ParseException, FactoryException {
+    public void generate(String dest) throws IOException, FactoryException {
         LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
@@ -392,11 +401,11 @@ public class LandscapeGenerator {
         while (!b && n < maxTry) {
             n++;
             b = true;
-            landscapeGenerator = new LandscapeGenerator(grid, neighborhood, bufferNeighborhood);
-            for (int i = 0; i < solution.names.length; i++) {
-                System.out.println("---------------------  Generating patches for class " + solution.names[i] + "  ----------------------------------------------");
-                int nbPatches = solution.nbPatches[i];
-                int[] sizes = solution.patchSizes[i];
+            landscapeGenerator = new LandscapeGenerator(structure, neighborhood, bufferNeighborhood);
+            for (int i = 0; i < structure.names.length; i++) {
+                System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ----------------------------------------------");
+                int nbPatches = structure.nbPatches[i];
+                int[] sizes = structure.patchSizes[i];
                 System.out.println("Number of patches = " + nbPatches);
                 System.out.println("Patch sizes = " + Arrays.toString(sizes));
                 for (int k : sizes) {
@@ -416,87 +425,6 @@ public class LandscapeGenerator {
                         dest
                 );
             }
-        }
-    }
-
-    public static void main(String[] args) throws IOException, FactoryException {
-        int nRow = 200;
-        int nCol = 200;
-        RegularSquareGrid grid = new RegularSquareGrid(nRow, nCol);
-        INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
-        INeighborhood bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(3);
-        EquivalentPatchSizesDistributions patchSizes = new EquivalentPatchSizesDistributions(
-                grid,
-                0,
-                5,
-                800,
-                800,
-                10,
-                10000
-        );
-        Solver solver = patchSizes.model.getSolver();
-        solver.showStatistics();
-        solver.setSearch(Search.randomSearch(patchSizes.patchSizes, System.currentTimeMillis()));
-        for (int l = 0; l < 10; l++) {
-            if (solver.solve()) {
-                System.out.println("---------------------  Landscape " + (l + 1) + "  ----------------------------------------------");
-                int nbPatches = patchSizes.nbPatches.getValue();
-                int[] sizesNoFilter = Arrays.stream(patchSizes.patchSizes)
-                        .mapToInt(v -> v.getValue())
-                        .toArray();
-
-                int[] sizes = Arrays.stream(patchSizes.patchSizes)
-                        .mapToInt(v -> v.getValue())
-                        .filter(i -> i > 0)
-                        .toArray();
-                System.out.println("Number of patches = " + nbPatches);
-                System.out.println("Patch sizes = " + Arrays.toString(sizesNoFilter));
-                LandscapeGenerator landscapeGenerator = null;
-                boolean b = false;
-                int maxTry = 100;
-                int n = 0;
-                while (!b && n < maxTry) {
-                    n++;
-                    b = true;
-                    landscapeGenerator = new LandscapeGenerator(grid, neighborhood, bufferNeighborhood);
-                    for (int s : sizes) {
-                        System.out.println("Generating patch of size " + s);
-                        b &= landscapeGenerator.generatePolyomino(0, s, false);
-                        if (!b) {
-                            break;
-                        }
-                    }
-                }
-                if (!b) {
-                    System.out.println("FAIL");
-                } else {
-                    System.out.println("Feasible landscape found after " + n + " tries");
-//                    for (int r = 0; r < nRow; r++) {
-//                        System.out.printf("  |");
-//                        for (int c = 0; c < nCol; c++) {
-//                            if (polyominoGenerator.boolGrid[grid.getIndexFromCoordinates(r, c)]) {
-//                                System.out.printf(" # ");
-//                            } else if (polyominoGenerator.bufferGrid[grid.getIndexFromCoordinates(r, c)]) {
-//                                System.out.printf(" · ");
-//                            } else {
-//                                System.out.printf("   ");
-//                            }
-//                        }
-//                        System.out.printf("|\n");
-//                    }
-                    landscapeGenerator.exportRaster(
-                            0, 0, 0.0001, "EPSG:4326",
-                            "/home/djusteau/Documents/testPolyomino/testc_" + l  +".tif"
-                    );
-                    landscapeGenerator.exportDem(
-                            0, 0, 0.0001, "EPSG:4326",
-                            "/home/djusteau/Documents/testPolyomino/testc_" + l  +"_DEM.tif"
-                    );
-                }
-            } else {
-                break;
-            }
-            System.out.println("-----------------------------------------------------------------------------------");
         }
     }
 }

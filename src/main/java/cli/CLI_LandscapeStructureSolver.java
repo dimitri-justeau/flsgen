@@ -2,7 +2,7 @@ package cli;
 
 import picocli.CommandLine;
 import solver.LandscapeStructureSolver;
-import solver.Solution;
+import solver.LandscapeStructure;
 
 import java.io.*;
 
@@ -44,7 +44,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
             }
             LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
             lSolver.build();
-            Solution s = lSolver.findSolution();
+            LandscapeStructure s = lSolver.findSolution();
             if (s != null) {
                 System.err.println(ANSI_GREEN + "Solution found in " + lSolver.model.getSolver().getTimeCount() + " s" + ANSI_RESET);
                 if (output.equals("-")) {

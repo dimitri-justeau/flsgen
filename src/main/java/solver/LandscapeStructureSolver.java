@@ -2,7 +2,6 @@ package solver;
 
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
-import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.variables.IntVar;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
@@ -48,9 +47,9 @@ public class LandscapeStructureSolver {
         this.isBuilt = true;
     }
 
-    public Solution findSolution() {
+    public LandscapeStructure findSolution() {
         if (model.getSolver().solve()) {
-            return new Solution(this);
+            return new LandscapeStructure(this);
         }
         return null;
     }

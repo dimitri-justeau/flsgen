@@ -4,7 +4,7 @@ import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
 import picocli.CommandLine;
 import solver.LandscapeGenerator;
-import solver.Solution;
+import solver.LandscapeStructure;
 
 import java.io.*;
 
@@ -36,10 +36,10 @@ public class CLI_LandscapeGenerator implements Runnable {
             } else {
                 reader = new FileReader(jsonPath);
             }
-            Solution s = Solution.fromJSON(reader);
+            LandscapeStructure s = LandscapeStructure.fromJSON(reader);
             RegularSquareGrid grid = new RegularSquareGrid(s.nbRows, s.nbCols);
-            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
-            landscapeGenerator.generateFromSolution(s, output);
+            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(s, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
+            landscapeGenerator.generate(output);
         } catch (Exception e) {
             e.printStackTrace();
         }

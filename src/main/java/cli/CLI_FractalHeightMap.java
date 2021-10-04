@@ -37,7 +37,7 @@ public class CLI_FractalHeightMap implements Runnable {
     public void run() {
         try {
             RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
-            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
+            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(null, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
             landscapeGenerator.exportDem(0, 0, 0.0001, "EPSG:4326", output);
             System.out.println("Fractal heightmap generated and exported at " + output);
         } catch (Exception e) {

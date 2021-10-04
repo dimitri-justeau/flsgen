@@ -5,12 +5,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
-public class Solution {
+public class LandscapeStructure {
 
     public int nbRows;
     public int nbCols;
@@ -20,7 +18,7 @@ public class Solution {
     public int[][] patchSizes;
     public double[] mesh;
 
-    public Solution(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, double[] mesh) {
+    public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, double[] mesh) {
         this.nbRows = nbRows;
         this.nbCols = nbCols;
         this.names = names;
@@ -30,7 +28,7 @@ public class Solution {
         this.mesh = mesh;
     }
 
-    public Solution(LandscapeStructureSolver s) {
+    public LandscapeStructure(LandscapeStructureSolver s) {
         this.nbRows = s.grid.getNbRows();
         this.nbCols = s.grid.getNbCols();
         this.names = new String[s.landscapeClasses.size()];
@@ -72,7 +70,7 @@ public class Solution {
         return json.toJSONString();
     }
 
-    public static Solution fromJSON(Reader reader) throws IOException, ParseException {
+    public static LandscapeStructure fromJSON(Reader reader) throws IOException, ParseException {
         JSONParser jsonParser = new JSONParser();
 //        FileReader reader = new FileReader(jsonPath);
         JSONObject structure = (JSONObject) jsonParser.parse(reader);
@@ -95,6 +93,6 @@ public class Solution {
                 patchSizes[i][j] = Integer.parseInt(sizes.get(j).toString());
             }
         }
-        return new Solution(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, mesh);
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, mesh);
     }
 }
