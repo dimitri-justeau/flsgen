@@ -19,11 +19,14 @@ import picocli.CommandLine;
 public class Main implements Runnable {
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            new CommandLine(new Main()).usage(System.out);
+            return;
+        }
         System.exit(new CommandLine(new Main()).execute(args));
     }
 
     @Override
     public void run() {
-
     }
 }

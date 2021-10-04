@@ -20,6 +20,7 @@ import javax.media.jai.RasterFactory;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.List;
@@ -385,9 +386,7 @@ public class PolyominoGenerator {
         writer.write(gc,null);
     }
 
-    public void generateFromJSONStructure(String jsonPath, String dest) throws IOException, ParseException, FactoryException {
-        Solution s = Solution.fromJSON(jsonPath);
-
+    public void generateFromSolution(Solution solution, String dest) throws IOException, ParseException, FactoryException {
         PolyominoGenerator polyominoGenerator = null;
         boolean b = false;
         int maxTry = 100;
@@ -397,10 +396,10 @@ public class PolyominoGenerator {
             n++;
             b = true;
             polyominoGenerator = new PolyominoGenerator(grid, neighborhood, bufferNeighborhood);
-            for (int i = 0; i < s.names.length; i++) {
-                System.out.println("---------------------  Generating patches for class " + s.names[i] + "  ----------------------------------------------");
-                int nbPatches = s.nbPatches[i];
-                int[] sizes = s.patchSizes[i];
+            for (int i = 0; i < solution.names.length; i++) {
+                System.out.println("---------------------  Generating patches for class " + solution.names[i] + "  ----------------------------------------------");
+                int nbPatches = solution.nbPatches[i];
+                int[] sizes = solution.patchSizes[i];
                 System.out.println("Number of patches = " + nbPatches);
                 System.out.println("Patch sizes = " + Arrays.toString(sizes));
                 for (int k : sizes) {

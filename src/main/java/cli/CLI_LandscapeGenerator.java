@@ -3,9 +3,10 @@ package cli;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
 import picocli.CommandLine;
-import solver.LandscapeStructureSolver;
 import solver.PolyominoGenerator;
 import solver.Solution;
+
+import java.io.*;
 
 @CommandLine.Command(
         name = "generator",
@@ -14,10 +15,8 @@ import solver.Solution;
 )
 public class CLI_LandscapeGenerator implements Runnable {
 
-    @CommandLine.Option(
-            names = "-f",
-            description = "JSON input file describing landscape structure",
-            required = true
+    @CommandLine.Parameters(
+            description = "JSON input file describing landscape structure -- Use \"-\" to read from STDIN"
     )
     String jsonPath;
 
@@ -31,10 +30,16 @@ public class CLI_LandscapeGenerator implements Runnable {
     @Override
     public void run() {
         try {
-            Solution s = Solution.fromJSON(jsonPath);
+            Reader reader;
+            if (jsonPath.equals("-")) {
+                reader = new BufferedReader(new InputStreamReader(System.in));
+            } else {
+                reader = new FileReader(jsonPath);
+            }
+            Solution s = Solution.fromJSON(reader);
             RegularSquareGrid grid = new RegularSquareGrid(s.nbRows, s.nbCols);
             PolyominoGenerator polyominoGenerator = new PolyominoGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
-            polyominoGenerator.generateFromJSONStructure(jsonPath, output);
+            polyominoGenerator.generateFromSolution(s, output);
         } catch (Exception e) {
             e.printStackTrace();
         }

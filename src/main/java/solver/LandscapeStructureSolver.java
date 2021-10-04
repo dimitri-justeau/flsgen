@@ -11,6 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,9 +81,8 @@ public class LandscapeStructureSolver {
         return json.toJSONString();
     }
 
-    public static LandscapeStructureSolver readFromJSON(String jsonPath) throws IOException, ParseException {
+    public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, ParseException {
         JSONParser jsonParser = new JSONParser();
-        FileReader reader = new FileReader(jsonPath);
         JSONObject targets = (JSONObject) jsonParser.parse(reader);
         // Get map dimensions
         if (!targets.containsKey("nbRows") || !targets.containsKey("nbCols")) {

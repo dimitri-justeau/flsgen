@@ -8,6 +8,7 @@ import org.json.simple.parser.ParseException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 
 public class Solution {
 
@@ -71,9 +72,9 @@ public class Solution {
         return json.toJSONString();
     }
 
-    public static Solution fromJSON(String jsonPath) throws IOException, ParseException {
+    public static Solution fromJSON(Reader reader) throws IOException, ParseException {
         JSONParser jsonParser = new JSONParser();
-        FileReader reader = new FileReader(jsonPath);
+//        FileReader reader = new FileReader(jsonPath);
         JSONObject structure = (JSONObject) jsonParser.parse(reader);
         int nbRows = Integer.parseInt(structure.get("nbRows").toString());
         int nbCols = Integer.parseInt(structure.get("nbCols").toString());

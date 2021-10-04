@@ -6,13 +6,14 @@ import org.chocosolver.solver.Solver;
 import org.json.simple.parser.ParseException;
 import org.opengis.referencing.FactoryException;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
 public class TestSevClasses {
 
     public static void main(String[] args) throws FactoryException, IOException, ParseException {
-        LandscapeStructureSolver l = LandscapeStructureSolver.readFromJSON("/home/djusteau/Documents/testPolyomino/struct_test.json");
+        LandscapeStructureSolver l = LandscapeStructureSolver.readFromJSON(new FileReader("/home/djusteau/Documents/testPolyomino/struct_test.json"));
         System.out.println(l.toJSON());
 //        RegularSquareGrid grid = new RegularSquareGrid(200, 200);
 //        LandscapeStructureSolver structModel = new LandscapeStructureSolver(grid);
