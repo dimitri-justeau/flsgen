@@ -1,10 +1,7 @@
 package solver;
 
 import grid.neighborhood.INeighborhood;
-import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
-import org.chocosolver.solver.Solver;
-import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -12,7 +9,6 @@ import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.json.simple.parser.ParseException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -91,7 +87,7 @@ public class LandscapeGenerator {
         this.nbAvailableCells = grid.getNbCells();
     }
 
-    public boolean generatePolyomino(int classId, int size, boolean noHole) {
+    public boolean generatePatch(int classId, int size, boolean noHole) {
         assert avalaibleCells[classId].size() >= size;
         int[] cells = new int[size];
         cells[0] = getRandomCell(avalaibleCells[classId]);
@@ -99,31 +95,38 @@ public class LandscapeGenerator {
         int n = 1;
         rasterGrid[current] = classId;
         nbAvailableCells--;
+        boolean success = true;
 //        NeighborhoodSelectionStrategy strategy = STRATEGIES_ALL[ThreadLocalRandom.current().nextInt(0, STRATEGIES_ALL.length)];
         NeighborhoodSelectionStrategy strategy = NeighborhoodSelectionStrategy.FROM_ALL;
         while (n < size) {
             int next = findNext(classId, n, cells, noHole, strategy);
             if (next == -1) {
-                return false;
+                success = false;
+                break;
             }
             n++;
         }
-        int sizeBuff = 0;
-        for (int i : cells) {
-            int idxI = avalaibleCells[classId].indexOf(i);
-            avalaibleCells[classId].remove(idxI);
-            for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
-                if (rasterGrid[j] == NODATA) {
-                    sizeBuff++;
-                    if (bufferGrid[j] == NODATA) {
-                        bufferGrid[j] = classId;
-                        int idxJ = avalaibleCells[classId].indexOf(j);
-                        avalaibleCells[classId].remove(idxJ);
+        if (success) { // Patch generation was successful, construct buffer.
+            for (int i : cells) {
+                int idxI = avalaibleCells[classId].indexOf(i);
+                avalaibleCells[classId].remove(idxI);
+                for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
+                    if (rasterGrid[j] == NODATA) {
+                        if (bufferGrid[j] == NODATA) {
+                            bufferGrid[j] = classId;
+                            int idxJ = avalaibleCells[classId].indexOf(j);
+                            avalaibleCells[classId].remove(idxJ);
+                        }
                     }
                 }
             }
+        } else { // Patch generation failed, backtrack grid to the previous state.
+            for (int i = 0; i < n; i++) {
+                rasterGrid[cells[i]] = NODATA;
+                nbAvailableCells++;
+            }
         }
-        return true;
+        return success;
     }
 
     public void filterHoles(int classId, List<Integer> neigh) {
@@ -396,6 +399,7 @@ public class LandscapeGenerator {
         LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
+        int maxTryPatch = 10;
         int n = 0;
 
         while (!b && n < maxTry) {
@@ -410,7 +414,14 @@ public class LandscapeGenerator {
                 System.out.println("Patch sizes = " + Arrays.toString(sizes));
                 for (int k : sizes) {
                     System.out.println("Generating patch of size " + k);
-                    b &= landscapeGenerator.generatePolyomino(i, k, false);
+                    boolean patchGenerated = false;
+                    for (int p = 0; p < maxTryPatch; p++) {
+                        patchGenerated = landscapeGenerator.generatePatch(i, k, false);
+                        if (patchGenerated) {
+                            break;
+                        }
+                    }
+                    b &= patchGenerated;
                     if (!b) {
                         break;
                     }
