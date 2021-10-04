@@ -20,14 +20,15 @@ import javax.media.jai.RasterFactory;
 import java.awt.image.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
-public class PolyominoGenerator {
+public class LandscapeGenerator {
+
+    public static final int NODATA = -1;
 
     public enum NeighborhoodSelectionStrategy {
         FROM_ALL,
@@ -49,14 +50,14 @@ public class PolyominoGenerator {
     public RegularSquareGrid grid;
     public INeighborhood neighborhood;
     public INeighborhood bufferNeighborhood;
-    public boolean[] boolGrid;
+    public int[] rasterGrid;
     public boolean[] bufferGrid;
     public int[][] neighbors;
     public double[] dem;
     public int nbAvailableCells;
     public List<Integer> avalaibleCells;
 
-    public PolyominoGenerator(RegularSquareGrid grid, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
+    public LandscapeGenerator(RegularSquareGrid grid, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
         this.grid = grid;
         double[][] fullDem = diamondSquare(1000, 2);
         dem = IntStream.range(0, this.grid.getNbCells())
@@ -70,30 +71,29 @@ public class PolyominoGenerator {
         for (int i = 0; i < grid.getNbCells(); i++) {
             neighbors[i] = neighborhood.getNeighbors(grid, i);
         }
-        this.boolGrid = new boolean[grid.getNbCells()];
+        this.rasterGrid = new int[grid.getNbCells()];
         this.bufferGrid = new boolean[grid.getNbCells()];
         this.avalaibleCells = new ArrayList<>();
         for (int i = 0; i < grid.getNbCells(); i++) {
-            boolGrid[i] = false;
+            rasterGrid[i] = NODATA;
             bufferGrid[i] = false;
             avalaibleCells.add(i);
         }
         this.nbAvailableCells = grid.getNbCells();
     }
 
-    public boolean generatePolyomino(int size, boolean noHole) {
+    public boolean generatePolyomino(int classId, int size, boolean noHole) {
         assert avalaibleCells.size() >= size;
         int[] cells = new int[size];
-        ArrayList<Integer> neigh = new ArrayList<>();
         cells[0] = getRandomCell(avalaibleCells);
         int current = cells[0];
         int n = 1;
-        boolGrid[current] = true;
+        rasterGrid[current] = classId;
         nbAvailableCells--;
 //        NeighborhoodSelectionStrategy strategy = STRATEGIES_ALL[ThreadLocalRandom.current().nextInt(0, STRATEGIES_ALL.length)];
         NeighborhoodSelectionStrategy strategy = NeighborhoodSelectionStrategy.FROM_ALL;
         while (n < size) {
-            int next = findNext(n, cells, noHole, strategy);
+            int next = findNext(classId, n, cells, noHole, strategy);
             if (next == -1) {
                 return false;
             }
@@ -104,7 +104,7 @@ public class PolyominoGenerator {
             int idxI = avalaibleCells.indexOf(i);
             avalaibleCells.remove(idxI);
             for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
-                if (!boolGrid[j]) {
+                if (rasterGrid[j] == NODATA) {
                     sizeBuff++;
                     if (!bufferGrid[j]) {
                         bufferGrid[j] = true;
@@ -117,15 +117,15 @@ public class PolyominoGenerator {
         return true;
     }
 
-    public void filterHoles(List<Integer> neigh) {
+    public void filterHoles(int classId, List<Integer> neigh) {
         ISet toRemove = SetFactory.makeBipartiteSet(0);
         for (int i = 0; i < neigh.size(); i++) {
-            boolGrid[neigh.get(i)] = true;
+            rasterGrid[neigh.get(i)] = classId;
             nbAvailableCells--;
             if (!assertNoHole()) {
                 toRemove.add(neigh.get(i));
             }
-            boolGrid[neigh.get(i)] = false;
+            rasterGrid[neigh.get(i)] = NODATA;
             nbAvailableCells++;
         }
         for (int i : toRemove) {
@@ -133,15 +133,15 @@ public class PolyominoGenerator {
         }
     }
 
-    public int findNext(int n, int[] cells, boolean noHole, NeighborhoodSelectionStrategy strategy) {
+    public int findNext(int classId, int n, int[] cells, boolean noHole, NeighborhoodSelectionStrategy strategy) {
         switch (strategy) {
             case FROM_ALL:
-                return findNextFromAll(n, cells, noHole);
+                return findNextFromAll(classId, n, cells, noHole);
             case FROM_LAST_POSSIBLE:
-                return findNextFromLastPossibleCell(n, cells, noHole);
+                return findNextFromLastPossibleCell(classId, n, cells, noHole);
             case RANDOM:
                 int strat = ThreadLocalRandom.current().nextInt(0, STRATEGIES.length);
-                return findNext(n, cells, noHole, STRATEGIES[strat]);
+                return findNext(classId, n, cells, noHole, STRATEGIES[strat]);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -159,7 +159,7 @@ public class PolyominoGenerator {
         int nbVisited = 0;
         int current = -1;
         for (int i = 0; i < nbCells; i++) {
-            if (!boolGrid[i]) {
+            if (rasterGrid[i] != NODATA) {
                 current = i;
                 break;
             }
@@ -172,7 +172,7 @@ public class PolyominoGenerator {
         while (front != rear) {
             current = queue[front++];
             for (int i : neighbors[current]) {
-                if (!boolGrid[i] && !visited[i]) {
+                if (rasterGrid[i] != NODATA && !visited[i]) {
                     queue[rear++] = i;
                     visited[i] = true;
                     nbVisited++;
@@ -185,11 +185,11 @@ public class PolyominoGenerator {
         return false;
     }
 
-    public int findNextFromAll(int n, int[] cells, boolean noHole) {
+    public int findNextFromAll(int classId, int n, int[] cells, boolean noHole) {
         List<Integer> neigh = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             for (int j : neighbors[cells[i]]) {
-                if (!boolGrid[j] && !bufferGrid[j]) {
+                if (rasterGrid[j] == NODATA && !bufferGrid[j]) {
                     neigh.add(j);
                 }
             }
@@ -216,13 +216,13 @@ public class PolyominoGenerator {
                 int idx = randomInt(minIdx, maxIdx);
                 //
                 next = neigh.get(idx);
-                boolGrid[next] = true;
+                rasterGrid[next] = classId;
                 nbAvailableCells--;
                 if (assertNoHole()) {
                     cells[n] = next;
                     ok = true;
                 } else {
-                    boolGrid[next] = false;
+                    rasterGrid[next] = NODATA;
                     nbAvailableCells++;
                     neigh.remove(idx);
                 }
@@ -236,22 +236,22 @@ public class PolyominoGenerator {
             //
             next = neigh.get(idx);
             cells[n] = next;
-            boolGrid[next] = true;
+            rasterGrid[next] = classId;
             nbAvailableCells--;
         }
         return next;
     };
 
-    public int findNextFromLastPossibleCell(int n, int[] cells, boolean noHole) {
+    public int findNextFromLastPossibleCell(int classId, int n, int[] cells, boolean noHole) {
         List<Integer> neigh = new ArrayList<>();
         for (int i = n - 1; i >= 0; i--) {
             for (int j : neighbors[cells[i]]) {
-                if (!boolGrid[j] && !bufferGrid[j]) {
+                if (rasterGrid[j] == NODATA && !bufferGrid[j]) {
                     neigh.add(j);
                 }
             }
             if (noHole) {
-                filterHoles(neigh);
+                filterHoles(classId, neigh);
             }
             if (neigh.size() > 0) {
                 neigh.sort((t1, t2) -> {
@@ -265,7 +265,7 @@ public class PolyominoGenerator {
 //                int next = getRandomCell(neigh);
                 int next = neigh.get(neigh.size() - 1);
                 cells[n] = next;
-                boolGrid[next] = true;
+                rasterGrid[next] = classId;
                 nbAvailableCells--;
                 return next;
             }
@@ -334,16 +334,13 @@ public class PolyominoGenerator {
 
     public double randomDouble(double min, double max) {
         return new SecureRandom().nextDouble() * (max - min) + min;
-//        return ThreadLocalRandom.current().nextDouble(min, max);
     }
 
     public int randomInt(int min, int max) {
         return new SecureRandom().nextInt(max - min) + min;
-//        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     public int getRandomCell(List<Integer> cells) {
-//        return cells.get(ThreadLocalRandom.current().nextInt(0, cells.size()));
         return cells.get(new SecureRandom().nextInt(cells.size()));
     }
 
@@ -374,7 +371,7 @@ public class PolyominoGenerator {
                 y, y + (grid.getNbRows() * resolution),
                 crs
         );
-        int[] data = IntStream.range(0, this.grid.getNbCells()).map(i -> boolGrid[i] ? 1 : 0).toArray();
+        int[] data = IntStream.range(0, this.grid.getNbCells()).map(i -> rasterGrid[i]).toArray();
         WritableRaster rast = RasterFactory.createBandedRaster(
                 DataBuffer.TYPE_INT,
                 grid.getNbCols(), grid.getNbRows(),
@@ -387,7 +384,7 @@ public class PolyominoGenerator {
     }
 
     public void generateFromSolution(Solution solution, String dest) throws IOException, ParseException, FactoryException {
-        PolyominoGenerator polyominoGenerator = null;
+        LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
         int n = 0;
@@ -395,7 +392,7 @@ public class PolyominoGenerator {
         while (!b && n < maxTry) {
             n++;
             b = true;
-            polyominoGenerator = new PolyominoGenerator(grid, neighborhood, bufferNeighborhood);
+            landscapeGenerator = new LandscapeGenerator(grid, neighborhood, bufferNeighborhood);
             for (int i = 0; i < solution.names.length; i++) {
                 System.out.println("---------------------  Generating patches for class " + solution.names[i] + "  ----------------------------------------------");
                 int nbPatches = solution.nbPatches[i];
@@ -404,7 +401,7 @@ public class PolyominoGenerator {
                 System.out.println("Patch sizes = " + Arrays.toString(sizes));
                 for (int k : sizes) {
                     System.out.println("Generating patch of size " + k);
-                    b &= polyominoGenerator.generatePolyomino(k, false);
+                    b &= landscapeGenerator.generatePolyomino(i, k, false);
                     if (!b) {
                         break;
                     }
@@ -414,7 +411,7 @@ public class PolyominoGenerator {
                 System.out.println("FAIL");
             } else {
                 System.out.println("Feasible landscape found after " + n + " tries");
-                polyominoGenerator.exportRaster(
+                landscapeGenerator.exportRaster(
                         0, 0, 0.0001, "EPSG:4326",
                         dest
                 );
@@ -454,17 +451,17 @@ public class PolyominoGenerator {
                         .toArray();
                 System.out.println("Number of patches = " + nbPatches);
                 System.out.println("Patch sizes = " + Arrays.toString(sizesNoFilter));
-                PolyominoGenerator polyominoGenerator = null;
+                LandscapeGenerator landscapeGenerator = null;
                 boolean b = false;
                 int maxTry = 100;
                 int n = 0;
                 while (!b && n < maxTry) {
                     n++;
                     b = true;
-                    polyominoGenerator = new PolyominoGenerator(grid, neighborhood, bufferNeighborhood);
+                    landscapeGenerator = new LandscapeGenerator(grid, neighborhood, bufferNeighborhood);
                     for (int s : sizes) {
                         System.out.println("Generating patch of size " + s);
-                        b &= polyominoGenerator.generatePolyomino(s, false);
+                        b &= landscapeGenerator.generatePolyomino(0, s, false);
                         if (!b) {
                             break;
                         }
@@ -487,11 +484,11 @@ public class PolyominoGenerator {
 //                        }
 //                        System.out.printf("|\n");
 //                    }
-                    polyominoGenerator.exportRaster(
+                    landscapeGenerator.exportRaster(
                             0, 0, 0.0001, "EPSG:4326",
                             "/home/djusteau/Documents/testPolyomino/testc_" + l  +".tif"
                     );
-                    polyominoGenerator.exportDem(
+                    landscapeGenerator.exportDem(
                             0, 0, 0.0001, "EPSG:4326",
                             "/home/djusteau/Documents/testPolyomino/testc_" + l  +"_DEM.tif"
                     );

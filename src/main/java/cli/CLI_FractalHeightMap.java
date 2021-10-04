@@ -3,9 +3,7 @@ package cli;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
 import picocli.CommandLine;
-import solver.LandscapeStructureSolver;
-import solver.PolyominoGenerator;
-import solver.Solution;
+import solver.LandscapeGenerator;
 
 @CommandLine.Command(
         name = "heightmap",
@@ -39,8 +37,8 @@ public class CLI_FractalHeightMap implements Runnable {
     public void run() {
         try {
             RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
-            PolyominoGenerator polyominoGenerator = new PolyominoGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
-            polyominoGenerator.exportDem(0, 0, 0.0001, "EPSG:4326", output);
+            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
+            landscapeGenerator.exportDem(0, 0, 0.0001, "EPSG:4326", output);
             System.out.println("Fractal heightmap generated and exported at " + output);
         } catch (Exception e) {
             e.printStackTrace();

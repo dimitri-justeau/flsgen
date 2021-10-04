@@ -15,8 +15,8 @@ public class Test {
         RegularSquareGrid grid = new RegularSquareGrid(nRow, nCol);
         INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
         INeighborhood bufferNeighborhood = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
-        PolyominoGenerator polyominoGenerator = new PolyominoGenerator(grid, neighborhood, bufferNeighborhood);
-        polyominoGenerator.exportDem(
+        LandscapeGenerator landscapeGenerator = new LandscapeGenerator(grid, neighborhood, bufferNeighborhood);
+        landscapeGenerator.exportDem(
                 0, 0, 0.0001, "EPSG:4326",
                 "/home/djusteau/Documents/testPolyomino/testDem.tif"
         );

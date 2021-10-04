@@ -3,7 +3,7 @@ package cli;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
 import picocli.CommandLine;
-import solver.PolyominoGenerator;
+import solver.LandscapeGenerator;
 import solver.Solution;
 
 import java.io.*;
@@ -38,8 +38,8 @@ public class CLI_LandscapeGenerator implements Runnable {
             }
             Solution s = Solution.fromJSON(reader);
             RegularSquareGrid grid = new RegularSquareGrid(s.nbRows, s.nbCols);
-            PolyominoGenerator polyominoGenerator = new PolyominoGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
-            polyominoGenerator.generateFromSolution(s, output);
+            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(grid, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
+            landscapeGenerator.generateFromSolution(s, output);
         } catch (Exception e) {
             e.printStackTrace();
         }

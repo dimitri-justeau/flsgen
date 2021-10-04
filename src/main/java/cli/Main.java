@@ -1,6 +1,5 @@
 package cli;
 
-import org.opengis.referencing.*;
 import org.geotools.util.logging.Logging;
 import picocli.CommandLine;
 

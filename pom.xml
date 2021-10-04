@@ -109,34 +109,34 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>org.graalvm.nativeimage</groupId>
-                <artifactId>native-image-maven-plugin</artifactId>
-                <version>20.0.0</version>
-                <configuration>
-                    <mainClass>cli.Main</mainClass>
-                    <imageName>flsgen</imageName>
-                    <buildArgs>
-                        --no-fallback
-                        --report-unsupported-elements-at-runtime
-                        --allow-incomplete-classpath
-                        -H:ReflectionConfigurationFiles=classes/META-INF/native-image/picocli-generated/reflect-config.json
-                        -H:+ReportExceptionStackTraces
-                        -H:EnableURLProtocols=https
-                        -H:IncludeResourceBundles=org.geotools.metadata.i18n.Vocabulary,org.geotools.metadata.i18n.Loggings,org.geotools.metadata.i18n.Errors
-                        -H:IncludeResources=org.geotools.metadata.i18n.*
-                    </buildArgs>
-                    <skip>false</skip>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>native-image</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.graalvm.nativeimage</groupId>-->
+<!--                <artifactId>native-image-maven-plugin</artifactId>-->
+<!--                <version>20.0.0</version>-->
+<!--                <configuration>-->
+<!--                    <mainClass>cli.Main</mainClass>-->
+<!--                    <imageName>flsgen</imageName>-->
+<!--                    <buildArgs>-->
+<!--                        &#45;&#45;no-fallback-->
+<!--                        &#45;&#45;report-unsupported-elements-at-runtime-->
+<!--                        &#45;&#45;allow-incomplete-classpath-->
+<!--                        -H:ReflectionConfigurationFiles=classes/META-INF/native-image/picocli-generated/reflect-config.json-->
+<!--                        -H:+ReportExceptionStackTraces-->
+<!--                        -H:EnableURLProtocols=https-->
+<!--                        -H:IncludeResourceBundles=org.geotools.metadata.i18n.Vocabulary,org.geotools.metadata.i18n.Loggings,org.geotools.metadata.i18n.Errors-->
+<!--                        -H:IncludeResources=org.geotools.metadata.i18n.*-->
+<!--                    </buildArgs>-->
+<!--                    <skip>false</skip>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>native-image</goal>-->
+<!--                        </goals>-->
+<!--                        <phase>verify</phase>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
         </plugins>
     </build>
