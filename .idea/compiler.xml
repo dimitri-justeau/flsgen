@@ -2,10 +2,14 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
+      <profile name="Annotation profile for forestGenerator" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli-codegen/4.5.0/picocli-codegen-4.5.0.jar" />
+          <entry name="$MAVEN_REPOSITORY$/info/picocli/picocli/4.5.0/picocli-4.5.0.jar" />
+        </processorPath>
         <module name="forestGenerator" />
       </profile>
     </annotationProcessing>

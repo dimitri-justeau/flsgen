@@ -1,6 +1,11 @@
 package cli;
 
+import org.opengis.referencing.*;
+import org.geotools.util.logging.Logging;
 import picocli.CommandLine;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Executable class for CLI
@@ -18,7 +23,13 @@ import picocli.CommandLine;
 )
 public class Main implements Runnable {
 
+
     public static void main(String[] args) {
+        // Turn off hsqldb info logging
+        Logger LOGGER = Logging.getLogger("hsqldb.db");
+        LOGGER.setLevel(Level.WARNING);
+        System.setProperty("hsqldb.reconfig_logging", "false");
+        //
         if (args.length == 0) {
             new CommandLine(new Main()).usage(System.out);
             return;
