@@ -2,6 +2,7 @@ package solver;
 
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.constraints.nary.nvalue.amnv.differences.D;
 import org.chocosolver.solver.variables.IntVar;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
@@ -74,6 +75,7 @@ public class LandscapeStructureSolver {
             patchSize.add(l.maxPatchSize);
             cl.put("patchSize", patchSize);
             classes.add(cl);
+
         }
         json.put("classes", classes);
         return json.toJSONString();
@@ -124,6 +126,48 @@ public class LandscapeStructureSolver {
             int maxPatchsize = Integer.parseInt(patchSize.get(1).toString());
             // Construct the landscape class
             LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, minNbPatches, maxNbPatches, minPatchSize, maxPatchsize);
+            // Get landscape class constraints
+            // 1. Total size or proportion
+            boolean totalSize = cljson.containsKey("totalSize");
+            boolean landscapeProportion = cljson.containsKey("landscapeProportion");
+            if (totalSize && landscapeProportion) {
+                throw new IOException("'totalSize' and 'landscapeProportion' cannot be used simultaneously (in class " + name + ")");
+            }
+            if (totalSize) {
+                JSONArray clTotalSize = (JSONArray) cljson.get("totalSize");
+                if (clTotalSize.size() != 2) {
+                    throw new IOException("'totalSize' must be an interval of two integer values (in class " + name + ")");
+                }
+                int minTotalSize = Integer.parseInt(clTotalSize.get(0).toString());
+                int maxTotalSize = Integer.parseInt(clTotalSize.get(1).toString());
+                landscapeClass.setTotalSize(minTotalSize, maxTotalSize);
+            }
+            if (landscapeProportion) {
+                JSONArray clProportion = (JSONArray) cljson.get("landscapeProportion");
+                if (clProportion.size() != 2) {
+                    throw new IOException("'landscapeProportion' must be an interval of two integer values (in class " + name + ")");
+                }
+                int minProportion = Integer.parseInt(clProportion.get(0).toString());
+                int maxProportion = Integer.parseInt(clProportion.get(1).toString());
+                landscapeClass.setLandscapeProportion(minProportion, maxProportion);
+            }
+            // 2. MESH
+            if (cljson.containsKey("mesh")) {
+                JSONArray clMesh = (JSONArray) cljson.get("mesh");
+                if (clMesh.size() != 2) {
+                    throw new IOException("'mesh' must be an interval of two integer values (in class " + name + ")");
+                }
+                double minMesh = Double.parseDouble(clMesh.get(0).toString());
+                double maxMesh = Double.parseDouble(clMesh.get(1).toString());
+                landscapeClass.setMesh(minMesh, maxMesh);
+            }
+            // 3. All patch with different sizes
+            if (cljson.containsKey("patchesAllDifferent")) {
+                Boolean clAllDiff = (Boolean) cljson.get("patchesAllDifferent");
+                if (clAllDiff.booleanValue()) {
+                    landscapeClass.setAllPatchesDifferentSize();
+                }
+            }
         }
         return lStructSolver;
     }

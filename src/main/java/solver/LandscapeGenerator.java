@@ -316,7 +316,7 @@ public class LandscapeGenerator {
         LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
-        int maxTryPatch = 10;
+        int maxTryPatch = 100;
         int n = 0;
 
         while (!b && n < maxTry) {
