@@ -27,7 +27,7 @@ public class CLI_LandscapeGenerator implements Runnable {
     String jsonPath;
 
     @CommandLine.Parameters(
-            description = "Output raster path for generated landscape"
+            description = "Output raster path for generated landscape (or prefix for multiple landscape generation)"
     )
     String output;
 
@@ -118,6 +118,13 @@ public class CLI_LandscapeGenerator implements Runnable {
     )
     int maxTryPatch;
 
+    @CommandLine.Option(
+            names = {"-n", "--nb-landscapes"},
+            description = "Number of landscapes to generate, if greater than one, use a prefix for GEOTIFF output file (default: 1).",
+            defaultValue = "1"
+    )
+    int nbLandscapes;
+
     @Override
     public void run() {
         try {
@@ -175,12 +182,27 @@ public class CLI_LandscapeGenerator implements Runnable {
             LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
                     s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
             );
-            boolean b =landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
-            if (!b) {
-                System.out.println("FAIL");
-            } else {
-                System.out.println("Feasible landscape found after " + landscapeGenerator.nbTry + " tries");
-                landscapeGenerator.exportRaster(x, y, resolution, srs, output);
+            if (nbLandscapes == 1) { // One landscape case
+                boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
+                if (!b) {
+                    System.out.println("FAIL");
+                } else {
+                    System.out.println("Feasible landscape found after " + landscapeGenerator.nbTry + " tries");
+                    landscapeGenerator.exportRaster(x, y, resolution, srs, output);
+                }
+            } else { // Several landscapes case
+                int n = 0;
+                while (n < nbLandscapes) {
+                    boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
+                    if (!b) {
+                        System.out.println("Failed to generate landscape " + (n + 1));
+                    } else {
+                        System.out.println("Feasible landscape " + (n + 1) + " found after " + landscapeGenerator.nbTry + " tries");
+                        landscapeGenerator.exportRaster(x, y, resolution, srs, output + (n + 1) + ".tif");
+                    }
+                    n++;
+                    landscapeGenerator.init();
+                }
             }
             if (!terrainOutput.equals("")) {
                 landscapeGenerator.terrain.exportRaster(x, y, resolution, srs, terrainOutput);
