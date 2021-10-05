@@ -37,7 +37,6 @@ public class CLI_LandscapeGenerator implements Runnable {
                 reader = new FileReader(jsonPath);
             }
             LandscapeStructure s = LandscapeStructure.fromJSON(reader);
-            RegularSquareGrid grid = new RegularSquareGrid(s.nbRows, s.nbCols);
             LandscapeGenerator landscapeGenerator = new LandscapeGenerator(s, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED);
             landscapeGenerator.generate(output);
         } catch (Exception e) {

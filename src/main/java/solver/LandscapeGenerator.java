@@ -59,7 +59,7 @@ public class LandscapeGenerator {
         this.structure = structure;
         this.grid = new RegularSquareGrid(structure.nbRows, structure.nbCols);
         this.nbClasses = structure.names.length;
-        double[][] fullDem = diamondSquare(1000, 2);
+        double[][] fullDem = diamondSquare(1000, 1.4);
         dem = IntStream.range(0, this.grid.getNbCells())
                 .mapToDouble(i -> {
                     int[] c = grid.getCoordinatesFromIndex(i);
@@ -171,7 +171,7 @@ public class LandscapeGenerator {
         int nbVisited = 0;
         int current = -1;
         for (int i = 0; i < nbCells; i++) {
-            if (rasterGrid[i] != NODATA) {
+            if (rasterGrid[i] == NODATA) {
                 current = i;
                 break;
             }
@@ -184,7 +184,7 @@ public class LandscapeGenerator {
         while (front != rear) {
             current = queue[front++];
             for (int i : neighbors[current]) {
-                if (rasterGrid[i] != NODATA && !visited[i]) {
+                if (rasterGrid[i] == NODATA && !visited[i]) {
                     queue[rear++] = i;
                     visited[i] = true;
                     nbVisited++;
@@ -222,9 +222,10 @@ public class LandscapeGenerator {
             boolean ok = false;
             while (!ok && neigh.size() > 0) {
                 // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
-                int chance = randomInt(0, 101);
+                int chance = randomInt(1, 101);
                 int minIdx = 0;
                 int maxIdx = neigh.size() * (chance / 100);
+                maxIdx = maxIdx > 0 ? maxIdx : 1;
                 int idx = randomInt(minIdx, maxIdx);
                 //
                 next = neigh.get(idx);
@@ -237,13 +238,15 @@ public class LandscapeGenerator {
                     rasterGrid[next] = NODATA;
                     nbAvailableCells++;
                     neigh.remove(idx);
+                    next = -1;
                 }
             }
         } else {
             // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
-            int chance = randomInt(0, 21);
+            int chance = randomInt(1, 21);
             int minIdx = 0;
             int maxIdx = (neigh.size() * chance) / 100;
+            maxIdx = maxIdx > 0 ? maxIdx : 1;
             int idx = minIdx == maxIdx ? minIdx : randomInt(minIdx, maxIdx);
             //
             next = neigh.get(idx);
@@ -416,7 +419,7 @@ public class LandscapeGenerator {
                     System.out.println("Generating patch of size " + k);
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
-                        patchGenerated = landscapeGenerator.generatePatch(i, k, false);
+                        patchGenerated = landscapeGenerator.generatePatch(i, k, true);
                         if (patchGenerated) {
                             break;
                         }
@@ -425,6 +428,9 @@ public class LandscapeGenerator {
                     if (!b) {
                         break;
                     }
+                }
+                if (!b) {
+                    break;
                 }
             }
             if (!b) {
