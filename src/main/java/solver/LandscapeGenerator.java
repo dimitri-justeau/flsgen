@@ -287,7 +287,7 @@ public class LandscapeGenerator {
         return cells.get(new SecureRandom().nextInt(cells.size()));
     }
 
-    public void exportRaster(int x, int y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
         GridCoverageFactory gcf = new GridCoverageFactory();
         CoordinateReferenceSystem crs = CRS.decode(epsg);
         ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(
@@ -308,7 +308,7 @@ public class LandscapeGenerator {
         System.out.println("Landscape raster exported at " + dest);
     }
 
-    public void generate(String dest, double terrainDependency) throws IOException, FactoryException {
+    public void generate(String dest, double terrainDependency, double x, double y, double resolution, String srs) throws IOException, FactoryException {
         LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
@@ -348,7 +348,7 @@ public class LandscapeGenerator {
             } else {
                 System.out.println("Feasible landscape found after " + n + " tries");
                 landscapeGenerator.exportRaster(
-                        0, 0, 0.0001, "EPSG:4326",
+                        x, y, resolution, srs,
                         dest
                 );
             }

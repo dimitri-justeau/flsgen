@@ -3,6 +3,8 @@ package cli;
 import grid.neighborhood.INeighborhood;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.gce.geotiff.GeoTiffReader;
 import picocli.CommandLine;
 import solver.LandscapeGenerator;
 import solver.LandscapeStructure;
@@ -67,6 +69,41 @@ public class CLI_LandscapeGenerator implements Runnable {
     )
     int minDistance;
 
+    @CommandLine.Option(
+            names = {"-x"},
+            description = "Top left x coordinate of the output raster (default 0)",
+            defaultValue = "0"
+    )
+    double x;
+
+    @CommandLine.Option(
+            names = {"-y"},
+            description = "Top left y coordinate of the output raster (default 0)",
+            defaultValue = "0"
+    )
+    double y;
+
+    @CommandLine.Option(
+            names = {"-r", "--resolution"},
+            description = "Spatial resolution of the output raster (in CRS unit, default 0.0001)",
+            defaultValue = "0.0001"
+    )
+    double resolution;
+
+    @CommandLine.Option(
+            names = {"-srs", "--spatial-reference-system"},
+            description = "Spatial reference system of the output raster (default: EPSG:4326)",
+            defaultValue = "EPSG:4326"
+    )
+    String srs;
+
+    @CommandLine.Option(
+            names = {"-ot", "--output-template"},
+            description = "Raster template to use for output raster metadata",
+            defaultValue = ""
+    )
+    String template;
+
     @Override
     public void run() {
         try {
@@ -82,6 +119,9 @@ public class CLI_LandscapeGenerator implements Runnable {
             if (minDistance <= 0) {
                 System.err.println(ANSIColors.ANSI_RED + "Minimum distance between patches must be at least 1" + ANSIColors.ANSI_RESET);
                 return;
+            }
+            if (!template.equals("")) {
+                initRasterMetadataFromTemplate(template);
             }
             // Read input structure
             Reader reader;
@@ -113,12 +153,22 @@ public class CLI_LandscapeGenerator implements Runnable {
             LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
                     s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
             );
-            landscapeGenerator.generate(output, terrainDependency);
+            landscapeGenerator.generate(output, terrainDependency, x, y, resolution, srs);
             if (!terrainOutput.equals("")) {
-                landscapeGenerator.terrain.exportRaster(0, 0, 0.0001, "EPSG:4326", terrainOutput);
+                landscapeGenerator.terrain.exportRaster(x, y, resolution, srs, terrainOutput);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void initRasterMetadataFromTemplate(String input) throws IOException {
+        File file = new File(input);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        resolution = gridCov.getEnvelope2D().getHeight() / gridCov.getRenderedImage().getHeight();
+        srs = gridCov.getEnvelope2D().getCoordinateReferenceSystem().getIdentifiers().iterator().next().toString();
+        x = gridCov.getEnvelope2D().getMinX();
+        y = gridCov.getEnvelope2D().getMinY();
     }
 }

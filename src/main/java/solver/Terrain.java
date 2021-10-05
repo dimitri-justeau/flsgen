@@ -109,7 +109,7 @@ public class Terrain {
         return new SecureRandom().nextDouble() * (max - min) + min;
     }
 
-    public void exportRaster(int x, int y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
         GridCoverageFactory gcf = new GridCoverageFactory();
         CoordinateReferenceSystem crs = CRS.decode(epsg);
         ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(
