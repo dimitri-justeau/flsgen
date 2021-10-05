@@ -50,7 +50,7 @@ public class LandscapeGenerator {
     public INeighborhood neighborhood;
     public INeighborhood bufferNeighborhood;
     public int[] rasterGrid;
-    public int[] bufferGrid;
+    public boolean[][] bufferGrid;
     public int[][] neighbors;
     public int nbAvailableCells;
     public List<Integer> avalaibleCells[];
@@ -67,22 +67,23 @@ public class LandscapeGenerator {
             neighbors[i] = neighborhood.getNeighbors(grid, i);
         }
         this.rasterGrid = new int[grid.getNbCells()];
-        this.bufferGrid = new int[grid.getNbCells()];
+        this.bufferGrid = new boolean[nbClasses][];
         this.avalaibleCells = new ArrayList[nbClasses];
         for (int i = 0; i < nbClasses; i++) {
             avalaibleCells[i] = new ArrayList<>();
+            bufferGrid[i] = new boolean[grid.getNbCells()];
         }
         for (int i = 0; i < grid.getNbCells(); i++) {
             rasterGrid[i] = NODATA;
-            bufferGrid[i] = NODATA;
             for (int j = 0; j < nbClasses; j++) {
                 avalaibleCells[j].add(i);
+                bufferGrid[j][i] = false;
             }
         }
         this.nbAvailableCells = grid.getNbCells();
     }
 
-    public boolean generatePatch(int classId, int size, boolean noHole) {
+    public boolean generatePatch(int classId, int size, double terrainDependency, boolean noHole) {
         assert avalaibleCells[classId].size() >= size;
         int[] cells = new int[size];
         cells[0] = getRandomCell(avalaibleCells[classId]);
@@ -94,7 +95,7 @@ public class LandscapeGenerator {
 //        NeighborhoodSelectionStrategy strategy = STRATEGIES_ALL[ThreadLocalRandom.current().nextInt(0, STRATEGIES_ALL.length)];
         NeighborhoodSelectionStrategy strategy = NeighborhoodSelectionStrategy.FROM_ALL;
         while (n < size) {
-            int next = findNext(classId, n, cells, noHole, strategy);
+            int next = findNext(classId, n, cells, terrainDependency, noHole, strategy);
             if (next == -1) {
                 success = false;
                 break;
@@ -106,12 +107,10 @@ public class LandscapeGenerator {
                 int idxI = avalaibleCells[classId].indexOf(i);
                 avalaibleCells[classId].remove(idxI);
                 for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
-                    if (rasterGrid[j] == NODATA) {
-                        if (bufferGrid[j] == NODATA) {
-                            bufferGrid[j] = classId;
-                            int idxJ = avalaibleCells[classId].indexOf(j);
-                            avalaibleCells[classId].remove(idxJ);
-                        }
+                    if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
+                        bufferGrid[classId][j] = true;
+                        int idxJ = avalaibleCells[classId].indexOf(j);
+                        avalaibleCells[classId].remove(idxJ);
                     }
                 }
             }
@@ -140,15 +139,15 @@ public class LandscapeGenerator {
         }
     }
 
-    public int findNext(int classId, int n, int[] cells, boolean noHole, NeighborhoodSelectionStrategy strategy) {
+    public int findNext(int classId, int n, int[] cells, double terrainDependency, boolean noHole, NeighborhoodSelectionStrategy strategy) {
         switch (strategy) {
             case FROM_ALL:
-                return findNextFromAll(classId, n, cells, noHole);
+                return findNextFromAll(classId, n, cells, terrainDependency, noHole);
             case FROM_LAST_POSSIBLE:
                 return findNextFromLastPossibleCell(classId, n, cells, noHole);
             case RANDOM:
                 int strat = ThreadLocalRandom.current().nextInt(0, STRATEGIES.length);
-                return findNext(classId, n, cells, noHole, STRATEGIES[strat]);
+                return findNext(classId, n, cells, terrainDependency, noHole, STRATEGIES[strat]);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -192,11 +191,11 @@ public class LandscapeGenerator {
         return false;
     }
 
-    public int findNextFromAll(int classId, int n, int[] cells, boolean noHole) {
+    public int findNextFromAll(int classId, int n, int[] cells, double terrainDependency, boolean noHole) {
         List<Integer> neigh = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             for (int j : neighbors[cells[i]]) {
-                if (rasterGrid[j] == NODATA && bufferGrid[j] != classId) {
+                if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
                     neigh.add(j);
                 }
             }
@@ -216,10 +215,8 @@ public class LandscapeGenerator {
         if (noHole) {
             boolean ok = false;
             while (!ok && neigh.size() > 0) {
-                // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
-                int chance = randomInt(1, 101);
                 int minIdx = 0;
-                int maxIdx = neigh.size() * (chance / 100);
+                int maxIdx = (int) Math.round(neigh.size() * (1 - terrainDependency));
                 maxIdx = maxIdx > 0 ? maxIdx : 1;
                 int idx = randomInt(minIdx, maxIdx);
                 //
@@ -238,9 +235,8 @@ public class LandscapeGenerator {
             }
         } else {
             // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
-            int chance = randomInt(1, 21);
             int minIdx = 0;
-            int maxIdx = (neigh.size() * chance) / 100;
+            int maxIdx = (int) Math.round(neigh.size() * (1 - terrainDependency));
             maxIdx = maxIdx > 0 ? maxIdx : 1;
             int idx = minIdx == maxIdx ? minIdx : randomInt(minIdx, maxIdx);
             //
@@ -256,7 +252,7 @@ public class LandscapeGenerator {
         List<Integer> neigh = new ArrayList<>();
         for (int i = n - 1; i >= 0; i--) {
             for (int j : neighbors[cells[i]]) {
-                if (rasterGrid[j] == NODATA && bufferGrid[j] != classId) {
+                if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
                     neigh.add(j);
                 }
             }
@@ -312,7 +308,7 @@ public class LandscapeGenerator {
         System.out.println("Landscape raster exported at " + dest);
     }
 
-    public void generate(String dest) throws IOException, FactoryException {
+    public void generate(String dest, double terrainDependency) throws IOException, FactoryException {
         LandscapeGenerator landscapeGenerator = null;
         boolean b = false;
         int maxTry = 100;
@@ -333,7 +329,7 @@ public class LandscapeGenerator {
                     System.out.println("Generating patch of size " + k);
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
-                        patchGenerated = landscapeGenerator.generatePatch(i, k, false);
+                        patchGenerated = landscapeGenerator.generatePatch(i, k, terrainDependency, false);
                         if (patchGenerated) {
                             break;
                         }

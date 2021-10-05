@@ -1,5 +1,6 @@
 package cli;
 
+import grid.neighborhood.INeighborhood;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
 import picocli.CommandLine;
@@ -39,10 +40,25 @@ public class CLI_LandscapeGenerator implements Runnable {
             names = {"-R", "--roughness"},
             description = "Roughness parameter (also called H), between 0 and 1 for fractal terrain generation." +
                     " Lower values produce rougher terrain (0.5 by default)",
-            required = true,
             defaultValue = "0.5"
     )
     double roughnessFactor;
+
+    @CommandLine.Option(
+            names = {"-T", "--terrain-dependency"},
+            description = "Terrain dependency of the patch generation algorithm, between 0 and 1." +
+                    " 0 means no dependency to the terrain, and 1 mean that patch generation is entirely guided by" +
+                    " the terrain (default 0.5)",
+            defaultValue = "0.5"
+    )
+    double terrainDependency;
+
+    @CommandLine.Option(
+            names = {"-D", "--distance-between-patches"},
+            description = "Minimum distance (in number of cells) between patches from a same class (default 2).",
+            defaultValue = "2"
+    )
+    int minDistance;
 
     @Override
     public void run() {
@@ -50,6 +66,16 @@ public class CLI_LandscapeGenerator implements Runnable {
             // Check parameters
             if (roughnessFactor < 0 || roughnessFactor > 1) {
                 System.err.println(ANSIColors.ANSI_RED + "Roughness factor must be in [0, 1]" + ANSIColors.ANSI_RESET);
+                return;
+            }
+            // Check parameters
+            if (terrainDependency < 0 || terrainDependency > 1) {
+                System.err.println(ANSIColors.ANSI_RED + "Terrain dependency must be in [0, 1]" + ANSIColors.ANSI_RESET);
+                return;
+            }
+            // Check parameters
+            if (minDistance <= 0) {
+                System.err.println(ANSIColors.ANSI_RED + "Minimum distance between patches must be at least 1" + ANSIColors.ANSI_RESET);
                 return;
             }
             // Read input structure
@@ -63,10 +89,22 @@ public class CLI_LandscapeGenerator implements Runnable {
             // Generate landscape
             Terrain terrain = new Terrain(new RegularSquareGrid(s.nbRows, s.nbCols));
             terrain.generateDiamondSquare(roughnessFactor);
+            INeighborhood bufferNeighborhood;
+            switch (minDistance) {
+                case 1:
+                    bufferNeighborhood = Neighborhoods.FOUR_CONNECTED;
+                    break;
+                case 2:
+                    bufferNeighborhood = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
+                    break;
+                default:
+                    bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance);
+                    break;
+            }
             LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
-                    s, Neighborhoods.FOUR_CONNECTED, Neighborhoods.FOUR_CONNECTED, terrain
+                    s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
             );
-            landscapeGenerator.generate(output);
+            landscapeGenerator.generate(output, terrainDependency);
             if (!terrainOutput.equals("")) {
                 landscapeGenerator.terrain.exportRaster(0, 0, 0.0001, "EPSG:4326", terrainOutput);
             }
