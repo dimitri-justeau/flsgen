@@ -37,6 +37,13 @@ public class CLI_LandscapeGenerator implements Runnable {
     String terrainOutput;
 
     @CommandLine.Option(
+            names = {"-lt", "--load-terrain"},
+            description = "Load the terrain used by the algorithm from a raster instead of generating it",
+            defaultValue = ""
+    )
+    String terrainInput;
+
+    @CommandLine.Option(
             names = {"-R", "--roughness"},
             description = "Roughness parameter (also called H), between 0 and 1 for fractal terrain generation." +
                     " Lower values produce rougher terrain (0.5 by default)",
@@ -68,12 +75,10 @@ public class CLI_LandscapeGenerator implements Runnable {
                 System.err.println(ANSIColors.ANSI_RED + "Roughness factor must be in [0, 1]" + ANSIColors.ANSI_RESET);
                 return;
             }
-            // Check parameters
             if (terrainDependency < 0 || terrainDependency > 1) {
                 System.err.println(ANSIColors.ANSI_RED + "Terrain dependency must be in [0, 1]" + ANSIColors.ANSI_RESET);
                 return;
             }
-            // Check parameters
             if (minDistance <= 0) {
                 System.err.println(ANSIColors.ANSI_RED + "Minimum distance between patches must be at least 1" + ANSIColors.ANSI_RESET);
                 return;
@@ -88,7 +93,11 @@ public class CLI_LandscapeGenerator implements Runnable {
             LandscapeStructure s = LandscapeStructure.fromJSON(reader);
             // Generate landscape
             Terrain terrain = new Terrain(new RegularSquareGrid(s.nbRows, s.nbCols));
-            terrain.generateDiamondSquare(roughnessFactor);
+            if (terrainInput.equals("")) {
+                terrain.generateDiamondSquare(roughnessFactor);
+            } else {
+                terrain.loadFromRaster(terrainInput);
+            }
             INeighborhood bufferNeighborhood;
             switch (minDistance) {
                 case 1:
