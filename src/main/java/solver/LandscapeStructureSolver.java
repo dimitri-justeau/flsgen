@@ -1,13 +1,12 @@
 package solver;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonException;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
-import org.chocosolver.solver.constraints.nary.nvalue.amnv.differences.D;
 import org.chocosolver.solver.variables.IntVar;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -59,18 +58,18 @@ public class LandscapeStructureSolver {
      * @return A JSON representation of the landscape structure solver (formatted as expected in readFromJSON)
      */
     public String toJSON() {
-        JSONObject json = new JSONObject();
+        JsonObject json = new JsonObject();
         json.put("nbRows", grid.getNbRows());
         json.put("nbCols", grid.getNbCols());
-        JSONArray classes = new JSONArray();
+        JsonArray classes = new JsonArray();
         for (LandscapeClass l : landscapeClasses) {
-            JSONObject cl = new JSONObject();
+            JsonObject cl = new JsonObject();
             cl.put("name", l.name);
-            JSONArray nbPatches = new JSONArray();
+            JsonArray nbPatches = new JsonArray();
             nbPatches.add(l.minNbPatches);
             nbPatches.add(l.maxNbPatches);
             cl.put("nbPatches", nbPatches);
-            JSONArray patchSize = new JSONArray();
+            JsonArray patchSize = new JsonArray();
             patchSize.add(l.minPatchSize);
             patchSize.add(l.maxPatchSize);
             cl.put("patchSize", patchSize);
@@ -78,12 +77,11 @@ public class LandscapeStructureSolver {
 
         }
         json.put("classes", classes);
-        return json.toJSONString();
+        return Jsoner.prettyPrint(json.toJson());
     }
 
-    public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, ParseException {
-        JSONParser jsonParser = new JSONParser();
-        JSONObject targets = (JSONObject) jsonParser.parse(reader);
+    public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, JsonException {
+        JsonObject targets = (JsonObject) Jsoner.deserialize(reader);
         // Get map dimensions
         if (!targets.containsKey("nbRows") || !targets.containsKey("nbCols")) {
             throw new IOException("'nbRows' and 'nbCols' are mandatory parameters but missing in input JSON file");
@@ -96,9 +94,9 @@ public class LandscapeStructureSolver {
         if (!targets.containsKey("classes")) {
             throw new IOException("'classes' is a mandatory parameter but missing in input JSON file");
         }
-        JSONArray classes = (JSONArray) targets.get("classes");
+        JsonArray classes = (JsonArray) targets.get("classes");
         for (Object cl : classes) {
-            JSONObject cljson = (JSONObject) cl;
+            JsonObject cljson = (JsonObject) cl;
             // Get name
             if (!cljson.containsKey("name")) {
                 throw new IOException("'name' is a mandatory parameter of classes but missing in input JSON file");
@@ -108,7 +106,7 @@ public class LandscapeStructureSolver {
             if (!cljson.containsKey("nbPatches")) {
                 throw new IOException("'nbPatches' is a mandatory parameter of classes but missing in class " + name);
             }
-            JSONArray nbPatches = (JSONArray) cljson.get("nbPatches");
+            JsonArray nbPatches = (JsonArray) cljson.get("nbPatches");
             if (nbPatches.size() != 2) {
                 throw new IOException("'nbPatches' must be an interval of two integer values (in class " + name + ")");
             }
@@ -118,7 +116,7 @@ public class LandscapeStructureSolver {
             if (!cljson.containsKey("patchSize")) {
                 throw new IOException("'patchSize' is a mandatory parameter of classes but missing in class " + name);
             }
-            JSONArray patchSize = (JSONArray) cljson.get("patchSize");
+            JsonArray patchSize = (JsonArray) cljson.get("patchSize");
             if (nbPatches.size() != 2) {
                 throw new IOException("'patchSize' must be an interval of two integer values (in class " + name + ")");
             }
@@ -134,7 +132,7 @@ public class LandscapeStructureSolver {
                 throw new IOException("'totalSize' and 'landscapeProportion' cannot be used simultaneously (in class " + name + ")");
             }
             if (totalSize) {
-                JSONArray clTotalSize = (JSONArray) cljson.get("totalSize");
+                JsonArray clTotalSize = (JsonArray) cljson.get("totalSize");
                 if (clTotalSize.size() != 2) {
                     throw new IOException("'totalSize' must be an interval of two integer values (in class " + name + ")");
                 }
@@ -143,7 +141,7 @@ public class LandscapeStructureSolver {
                 landscapeClass.setTotalSize(minTotalSize, maxTotalSize);
             }
             if (landscapeProportion) {
-                JSONArray clProportion = (JSONArray) cljson.get("landscapeProportion");
+                JsonArray clProportion = (JsonArray) cljson.get("landscapeProportion");
                 if (clProportion.size() != 2) {
                     throw new IOException("'landscapeProportion' must be an interval of two integer values (in class " + name + ")");
                 }
@@ -153,7 +151,7 @@ public class LandscapeStructureSolver {
             }
             // 2. MESH
             if (cljson.containsKey("mesh")) {
-                JSONArray clMesh = (JSONArray) cljson.get("mesh");
+                JsonArray clMesh = (JsonArray) cljson.get("mesh");
                 if (clMesh.size() != 2) {
                     throw new IOException("'mesh' must be an interval of two integer values (in class " + name + ")");
                 }

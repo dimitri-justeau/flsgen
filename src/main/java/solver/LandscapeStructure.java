@@ -1,11 +1,10 @@
 package solver;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonException;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 
-import java.io.IOException;
 import java.io.Reader;
 
 public class LandscapeStructure {
@@ -49,16 +48,16 @@ public class LandscapeStructure {
      * @return A JSON representation of the solution
      */
     public String toJSON() {
-        JSONObject json = new JSONObject();
+        JsonObject json = new JsonObject();
         json.put("nbRows", nbRows);
         json.put("nbCols", nbCols);
-        JSONArray classes = new JSONArray();
+        JsonArray classes = new JsonArray();
         for (int i = 0; i < names.length; i++) {
-            JSONObject cl = new JSONObject();
+            JsonObject cl = new JsonObject();
             cl.put("name", names[i]);
             cl.put("totalSize", totalSize[i]);
             cl.put("nbPatches", nbPatches[i]);
-            JSONArray sizes = new JSONArray();
+            JsonArray sizes = new JsonArray();
             for (int s : patchSizes[i]) {
                 sizes.add(s);
             }
@@ -67,27 +66,25 @@ public class LandscapeStructure {
             cl.put("mesh", mesh[i]);
         }
         json.put("classes", classes);
-        return json.toJSONString();
+        return Jsoner.prettyPrint(json.toJson());
     }
 
-    public static LandscapeStructure fromJSON(Reader reader) throws IOException, ParseException {
-        JSONParser jsonParser = new JSONParser();
-//        FileReader reader = new FileReader(jsonPath);
-        JSONObject structure = (JSONObject) jsonParser.parse(reader);
+    public static LandscapeStructure fromJSON(Reader reader) throws JsonException {
+        JsonObject structure = (JsonObject) Jsoner.deserialize(reader);
         int nbRows = Integer.parseInt(structure.get("nbRows").toString());
         int nbCols = Integer.parseInt(structure.get("nbCols").toString());
-        JSONArray classes = (JSONArray) structure.get("classes");
+        JsonArray classes = (JsonArray) structure.get("classes");
         String[] names = new String[classes.size()];
         int[] totalSize = new int[classes.size()];
         int[] nbPatches = new int[classes.size()];
         int[][] patchSizes = new int[classes.size()][];
         double[] mesh = new double[classes.size()];
         for (int i = 0; i < classes.size(); i++) {
-            JSONObject c = (JSONObject) classes.get(i);
+            JsonObject c = (JsonObject) classes.get(i);
             names[i] = (String) c.get("name");
             nbPatches[i] = Integer.parseInt(c.get("nbPatches").toString());
             mesh[i] = Double.parseDouble(c.get("mesh").toString());
-            JSONArray sizes = (JSONArray) c.get("patchSizes");
+            JsonArray sizes = (JsonArray) c.get("patchSizes");
             patchSizes[i] = new int[sizes.size()];
             for (int j = 0; j < sizes.size(); j++) {
                 patchSizes[i][j] = Integer.parseInt(sizes.get(j).toString());

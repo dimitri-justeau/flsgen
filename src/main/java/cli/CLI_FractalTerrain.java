@@ -2,7 +2,6 @@ package cli;
 
 import grid.regular.square.RegularSquareGrid;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
 import picocli.CommandLine;
 import solver.Terrain;
@@ -60,14 +59,14 @@ public class CLI_FractalTerrain implements Runnable {
     double resolution;
 
     @CommandLine.Option(
-            names = {"-srs", "--spatial-reference-system"},
+            names = {"-s", "-srs", "--spatial-reference-system"},
             description = "Spatial reference system of the output raster (default: EPSG:4326)",
             defaultValue = "EPSG:4326"
     )
     String srs;
 
     @CommandLine.Option(
-            names = {"-ot", "--output-template"},
+            names = {"-t", "-ot", "--output-template"},
             description = "Raster template to use for output raster metadata",
             defaultValue = ""
     )

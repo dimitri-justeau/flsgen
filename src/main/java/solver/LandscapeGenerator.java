@@ -54,6 +54,7 @@ public class LandscapeGenerator {
     public int[][] neighbors;
     public int nbAvailableCells;
     public List<Integer> avalaibleCells[];
+    public int nbTry;
 
     public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain) {
         this.structure = structure;
@@ -66,6 +67,10 @@ public class LandscapeGenerator {
         for (int i = 0; i < grid.getNbCells(); i++) {
             neighbors[i] = neighborhood.getNeighbors(grid, i);
         }
+        init();
+    }
+
+    public void init() {
         this.rasterGrid = new int[grid.getNbCells()];
         this.bufferGrid = new boolean[nbClasses][];
         this.avalaibleCells = new ArrayList[nbClasses];
@@ -308,19 +313,14 @@ public class LandscapeGenerator {
         System.out.println("Landscape raster exported at " + dest);
     }
 
-    public void generate(String dest, double terrainDependency, double x, double y, double resolution, String srs) throws IOException, FactoryException {
-        LandscapeGenerator landscapeGenerator = null;
+    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch) {
+        nbTry = 0;
         boolean b = false;
-        int maxTry = 100;
-        int maxTryPatch = 100;
-        int n = 0;
-
-        while (!b && n < maxTry) {
-            n++;
+        while (!b && nbTry < maxTry) {
+            nbTry++;
             b = true;
-            landscapeGenerator = new LandscapeGenerator(structure, neighborhood, bufferNeighborhood, terrain);
             for (int i = 0; i < structure.names.length; i++) {
-                System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ----------------------------------------------");
+                System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ---------------------");
                 int nbPatches = structure.nbPatches[i];
                 int[] sizes = structure.patchSizes[i];
                 System.out.println("Number of patches = " + nbPatches);
@@ -329,7 +329,7 @@ public class LandscapeGenerator {
                     System.out.println("Generating patch of size " + k);
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
-                        patchGenerated = landscapeGenerator.generatePatch(i, k, terrainDependency, false);
+                        patchGenerated = generatePatch(i, k, terrainDependency, false);
                         if (patchGenerated) {
                             break;
                         }
@@ -340,18 +340,11 @@ public class LandscapeGenerator {
                     }
                 }
                 if (!b) {
+                    init();
                     break;
                 }
             }
-            if (!b) {
-                System.out.println("FAIL");
-            } else {
-                System.out.println("Feasible landscape found after " + n + " tries");
-                landscapeGenerator.exportRaster(
-                        x, y, resolution, srs,
-                        dest
-                );
-            }
         }
+        return b;
     }
 }
