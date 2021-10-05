@@ -17,7 +17,7 @@ import java.util.logging.Logger;
         subcommands = {
             CLI_LandscapeStructureSolver.class,
             CLI_LandscapeGenerator.class,
-            CLI_FractalHeightMap.class
+            CLI_FractalTerrain.class
         }
 )
 public class Main implements Runnable {

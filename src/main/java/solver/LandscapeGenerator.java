@@ -44,6 +44,7 @@ public class LandscapeGenerator {
     };
 
     public LandscapeStructure structure;
+    public Terrain terrain;
     public RegularSquareGrid grid;
     public int nbClasses;
     public INeighborhood neighborhood;
@@ -51,20 +52,14 @@ public class LandscapeGenerator {
     public int[] rasterGrid;
     public int[] bufferGrid;
     public int[][] neighbors;
-    public double[] dem;
     public int nbAvailableCells;
     public List<Integer> avalaibleCells[];
 
-    public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood) {
+    public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain) {
         this.structure = structure;
         this.grid = new RegularSquareGrid(structure.nbRows, structure.nbCols);
         this.nbClasses = structure.names.length;
-        double[][] fullDem = diamondSquare(1000, 1.4);
-        dem = IntStream.range(0, this.grid.getNbCells())
-                .mapToDouble(i -> {
-                    int[] c = grid.getCoordinatesFromIndex(i);
-                    return fullDem[c[0]][c[1]];
-                }).toArray();
+        this.terrain = terrain;
         this.neighborhood = neighborhood;
         this.bufferNeighborhood = bufferNeighborhood;
         this.neighbors = new int[grid.getNbCells()][];
@@ -210,9 +205,9 @@ public class LandscapeGenerator {
             return -1;
         }
         neigh.sort((t1, t2) -> {
-            if (dem[t1] == dem[t2]) {
+            if (terrain.dem[t1] == terrain.dem[t2]) {
                 return 0;
-            } else if (dem[t1] < dem[t2]) {
+            } else if (terrain.dem[t1] < terrain.dem[t2]) {
                 return -1;
             }
             return 1;
@@ -270,9 +265,9 @@ public class LandscapeGenerator {
             }
             if (neigh.size() > 0) {
                 neigh.sort((t1, t2) -> {
-                    if (dem[t1] == dem[t2]) {
+                    if (terrain.dem[t1] == terrain.dem[t2]) {
                         return 0;
-                    } else if (dem[t1] > dem[t2]) {
+                    } else if (terrain.dem[t1] > terrain.dem[t2]) {
                         return -1;
                     }
                     return 1;
@@ -288,94 +283,12 @@ public class LandscapeGenerator {
         return -1;
     }
 
-    public double[][] diamondSquare(double randomness, double roughnessFactor) {
-        // Get the smallest power of 2 greater than of equal to the largest landscape dimension
-        int h = Math.max(grid.getNbRows(), grid.getNbCols());
-        double pos = Math.ceil(Math.log(h) / Math.log(2));
-        h = (int) (Math.pow(2, pos) + 1);
-        System.out.println("Dimension = " + h + " x " + h);
-        // Init matrix
-        double[][] dem = new double[h][h];
-        // Init edges
-        dem[0][0] = randomDouble(-randomness, randomness);
-        dem[0][h - 1] = randomDouble(-randomness, randomness);
-        dem[h - 1][0] = randomDouble(-randomness, randomness);
-        dem[h - 1][h - 1] = randomDouble(-randomness, randomness);
-        double r = randomness / roughnessFactor;
-        // Fill matrix
-        int i = h - 1;
-        while (i > 1) {
-            int id = i / 2;
-            for (int x = id; x < h; x += i) { // Diamond
-                for (int y = id; y < h; y += i) {
-                    double mean = (dem[x - id][y - id] + dem[x - id][y + id] + dem[x + id][y + id] + dem[x + id][y - id]) / 4;
-                    dem[x][y] = mean + randomDouble(-r, r);
-                }
-            }
-            int offset = 0;
-            for (int x = 0; x < h; x += id) { // Square
-                if (offset == 0) {
-                    offset = id;
-                } else {
-                    offset = 0;
-                }
-                for (int y = offset; y < h; y += i) {
-                    double sum = 0;
-                    int n = 0;
-                    if (x >= id) {
-                        sum += dem[x - id][y];
-                        n++;
-                    }
-                    if (x + id < h) {
-                        sum += dem[x + id][y];
-                        n++;
-                    }
-                    if (y >= id) {
-                        sum += dem[x][y - id];
-                        n++;
-                    }
-                    if (y + id < h) {
-                        sum += dem[x][y + id];
-                        n++;
-                    }
-                    dem[x][y] = sum / n + randomDouble(-r, r);
-                }
-            }
-            i = id;
-            r /= roughnessFactor;
-        }
-        return dem;
-    }
-
-    public double randomDouble(double min, double max) {
-        return new SecureRandom().nextDouble() * (max - min) + min;
-    }
-
     public int randomInt(int min, int max) {
         return new SecureRandom().nextInt(max - min) + min;
     }
 
     public int getRandomCell(List<Integer> cells) {
         return cells.get(new SecureRandom().nextInt(cells.size()));
-    }
-
-    public void exportDem(int x, int y, double resolution, String epsg, String dest) throws IOException, FactoryException {
-        GridCoverageFactory gcf = new GridCoverageFactory();
-        CoordinateReferenceSystem crs = CRS.decode(epsg);
-        ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(
-                x, x + (grid.getNbCols() * resolution),
-                y, y + (grid.getNbRows() * resolution),
-                crs
-        );
-        WritableRaster rast = RasterFactory.createBandedRaster(
-                DataBuffer.TYPE_DOUBLE,
-                grid.getNbCols(), grid.getNbRows(),
-                1, null
-        );
-        rast.setPixels(0, 0, grid.getNbCols(), grid.getNbRows(), dem);
-        GridCoverage2D gc = gcf.create("generated_landscape", rast, referencedEnvelope);
-        GeoTiffWriter writer = new GeoTiffWriter(new File(dest));
-        writer.write(gc,null);
     }
 
     public void exportRaster(int x, int y, double resolution, String epsg, String dest) throws IOException, FactoryException {
@@ -396,6 +309,7 @@ public class LandscapeGenerator {
         GridCoverage2D gc = gcf.create("generated_landscape", rast, referencedEnvelope);
         GeoTiffWriter writer = new GeoTiffWriter(new File(dest));
         writer.write(gc,null);
+        System.out.println("Landscape raster exported at " + dest);
     }
 
     public void generate(String dest) throws IOException, FactoryException {
@@ -408,7 +322,7 @@ public class LandscapeGenerator {
         while (!b && n < maxTry) {
             n++;
             b = true;
-            landscapeGenerator = new LandscapeGenerator(structure, neighborhood, bufferNeighborhood);
+            landscapeGenerator = new LandscapeGenerator(structure, neighborhood, bufferNeighborhood, terrain);
             for (int i = 0; i < structure.names.length; i++) {
                 System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ----------------------------------------------");
                 int nbPatches = structure.nbPatches[i];
@@ -419,7 +333,7 @@ public class LandscapeGenerator {
                     System.out.println("Generating patch of size " + k);
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
-                        patchGenerated = landscapeGenerator.generatePatch(i, k, true);
+                        patchGenerated = landscapeGenerator.generatePatch(i, k, false);
                         if (patchGenerated) {
                             break;
                         }
