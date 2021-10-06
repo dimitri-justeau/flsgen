@@ -1,5 +1,6 @@
 package cli;
 
+import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
 import solver.LandscapeStructureSolver;
 import solver.LandscapeStructure;
@@ -16,15 +17,19 @@ import static cli.ANSIColors.*;
 public class CLI_LandscapeStructureSolver implements Runnable {
 
     @CommandLine.Parameters(
-            description = "JSON input file describing landscape targets -- Use \"-\" to read from STDIN"
+            description = "JSON output file (or prefix for multiple structure generation) for solution -- Use \"-\" to write to STDOUT " +
+                    "(only possible with one structure as input and single-solution generation)",
+            index = "0"
     )
-    String jsonPath;
+    String outputPrefix;
 
     @CommandLine.Parameters(
-            description = "JSON output file (or prefix for multiple structure generation) for solution -- Use \"-\" to write to STDOUT " +
-                    "(only possible for single-solution generation)"
+            description = "JSON input file(s) describing landscape targets -- " +
+                    "Use \"-\" to read from STDIN (only possible with one structure as input) -- " +
+                    "Use multiple space-separated paths to generate landscapes with different structures.",
+            index = "1..*"
     )
-    String output;
+    String[] jsonPaths;
 
     @CommandLine.Option(
             names = {"-n", "--nb-solutions"},
@@ -39,51 +44,62 @@ public class CLI_LandscapeStructureSolver implements Runnable {
             System.err.println(ANSIColors.ANSI_RED + "Number of solutions must be at least 1" + ANSIColors.ANSI_RESET);
             return;
         }
-        if (nbSolutions > 1 && output.equals("-")) {
+        if (nbSolutions > 1 && outputPrefix.equals("-")) {
             System.err.println(ANSIColors.ANSI_RED + "STDOUT solution output is only possible when nbSolutions = 1" + ANSIColors.ANSI_RESET);
             return;
         }
         try {
-            Reader reader;
-            if (jsonPath.equals("-")) {
-                reader = new BufferedReader(new InputStreamReader(System.in));
+            String[] targetNames = new String[jsonPaths.length];
+            if (jsonPaths.length == 1 && jsonPaths[0].equals("-")) {
+                targetNames[0] = "STDIN";
             } else {
-                reader = new FileReader(jsonPath);
-            }
-            LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
-            lSolver.build();
-            if (nbSolutions == 1) {
-                // One solution case
-                LandscapeStructure s = lSolver.findSolution();
-                if (s != null) {
-                    System.err.println(ANSI_GREEN + "Solution found in " + lSolver.model.getSolver().getTimeCount() + " s" + ANSI_RESET);
-                    if (output.equals("-")) {
-                        System.out.println(s.toJSON());
-                    } else {
-                        FileWriter writer = new FileWriter(output);
-                        writer.write(s.toJSON());
-                        writer.close();
-                    }
-                } else {
-                    System.err.println(ANSI_RED + "No possible solution" + ANSI_RESET);
+                for (int i = 0; i < jsonPaths.length; i++) {
+                    targetNames[i] = FilenameUtils.removeExtension(new File(jsonPaths[i]).getName());
                 }
-            } else { // Several solutions case
-                int n = 0;
-                while (n < nbSolutions) {
+            }
+
+            for (int i = 0; i < jsonPaths.length; i++) {
+                Reader reader;
+                if (jsonPaths.length == 1 && jsonPaths[0].equals("-")) {
+                    reader = new BufferedReader(new InputStreamReader(System.in));
+                } else {
+                    reader = new FileReader(jsonPaths[i]);
+                }
+                LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
+                lSolver.build();
+                if (nbSolutions == 1) {
+                    // One solution case
                     LandscapeStructure s = lSolver.findSolution();
                     if (s != null) {
-                        System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.model.getSolver().getTimeCount() + " s)" + ANSI_RESET);
-                        FileWriter writer = new FileWriter(output + (n + 1) + ".json");
-                        writer.write(s.toJSON());
-                        writer.close();
-                        n++;
-                    } else {
-                        if (n == 0) {
-                            System.err.println(ANSI_RED + "No possible solution" + ANSI_RESET);
+                        System.err.println(ANSI_GREEN + "Solution found in " + lSolver.model.getSolver().getTimeCount() + " s" + ANSI_RESET);
+                        if (outputPrefix.equals("-")) {
+                            System.out.println(s.toJSON());
                         } else {
-                            System.err.println(ANSI_RED + "No more possible solutions" + ANSI_RESET);
+                            FileWriter writer = new FileWriter(outputPrefix + "_" + targetNames[i] + ".json");
+                            writer.write(s.toJSON());
+                            writer.close();
                         }
-                        break;
+                    } else {
+                        System.err.println(ANSI_RED + "No possible solution" + ANSI_RESET);
+                    }
+                } else { // Several solutions case
+                    int n = 0;
+                    while (n < nbSolutions) {
+                        LandscapeStructure s = lSolver.findSolution();
+                        if (s != null) {
+                            System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.model.getSolver().getTimeCount() + " s)" + ANSI_RESET);
+                            FileWriter writer = new FileWriter(outputPrefix + "_" + targetNames[i] + "_" + (n + 1) + ".json");
+                            writer.write(s.toJSON());
+                            writer.close();
+                            n++;
+                        } else {
+                            if (n == 0) {
+                                System.err.println(ANSI_RED + "No possible solution" + ANSI_RESET);
+                            } else {
+                                System.err.println(ANSI_RED + "No more possible solutions" + ANSI_RESET);
+                            }
+                            break;
+                        }
                     }
                 }
             }

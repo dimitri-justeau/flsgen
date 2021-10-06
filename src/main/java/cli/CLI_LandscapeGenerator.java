@@ -3,6 +3,7 @@ package cli;
 import grid.neighborhood.INeighborhood;
 import grid.neighborhood.Neighborhoods;
 import grid.regular.square.RegularSquareGrid;
+import org.apache.commons.io.FilenameUtils;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.gce.geotiff.GeoTiffReader;
 import picocli.CommandLine;
@@ -15,21 +16,25 @@ import java.io.*;
 @CommandLine.Command(
         name = "generator",
         mixinStandardHelpOptions = true,
-        description = "Generate a landscape from a given structure. To produce more realistic landscape, " +
+        description = "Generate landscapes from given structures. To produce more realistic landscape, " +
                 "the algorithm relies on a terrain either given as input or automatically generated as" +
                 " a fractal terrain."
 )
 public class CLI_LandscapeGenerator implements Runnable {
 
     @CommandLine.Parameters(
-            description = "JSON input file describing landscape structure -- Use \"-\" to read from STDIN"
+            description = "Output raster prefix path for generated landscape(s)",
+            index = "0"
     )
-    String jsonPath;
+    String outputPrefix;
 
     @CommandLine.Parameters(
-            description = "Output raster path for generated landscape (or prefix for multiple landscape generation)"
+            description = "JSON input file describing landscape structure -- Use \"-\" to read from STDIN " +
+                    "(only possible with one structure as input) -- " +
+                    "Use multiple space-separated paths to generate landscapes with different structures.",
+            index = "1..*"
     )
-    String output;
+    String[] jsonPaths;
 
     @CommandLine.Option(
             names = {"-e", "-et", "--export-terrain"},
@@ -120,7 +125,7 @@ public class CLI_LandscapeGenerator implements Runnable {
 
     @CommandLine.Option(
             names = {"-n", "--nb-landscapes"},
-            description = "Number of landscapes to generate, if greater than one, use a prefix for GEOTIFF output file (default: 1).",
+            description = "Number of landscapes to generate (default: 1).",
             defaultValue = "1"
     )
     int nbLandscapes;
@@ -153,59 +158,69 @@ public class CLI_LandscapeGenerator implements Runnable {
                 initRasterMetadataFromTemplate(template);
             }
             // Read input structure
-            Reader reader;
-            if (jsonPath.equals("-")) {
-                reader = new BufferedReader(new InputStreamReader(System.in));
+            String[] structNames = new String[jsonPaths.length];
+            if (jsonPaths.length == 1 && jsonPaths[0].equals("-")) {
+                structNames[0] = "STDIN";
             } else {
-                reader = new FileReader(jsonPath);
-            }
-            LandscapeStructure s = LandscapeStructure.fromJSON(reader);
-            // Generate landscape
-            Terrain terrain = new Terrain(new RegularSquareGrid(s.nbRows, s.nbCols));
-            if (terrainInput.equals("")) {
-                terrain.generateDiamondSquare(roughnessFactor);
-            } else {
-                terrain.loadFromRaster(terrainInput);
-            }
-            INeighborhood bufferNeighborhood;
-            switch (minDistance) {
-                case 1:
-                    bufferNeighborhood = Neighborhoods.FOUR_CONNECTED;
-                    break;
-                case 2:
-                    bufferNeighborhood = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
-                    break;
-                default:
-                    bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance);
-                    break;
-            }
-            LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
-                    s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
-            );
-            if (nbLandscapes == 1) { // One landscape case
-                boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
-                if (!b) {
-                    System.out.println("FAIL");
-                } else {
-                    System.out.println("Feasible landscape found after " + landscapeGenerator.nbTry + " tries");
-                    landscapeGenerator.exportRaster(x, y, resolution, srs, output);
+                for (int i = 0; i < jsonPaths.length; i++) {
+                    structNames[i] = FilenameUtils.removeExtension(new File(jsonPaths[i]).getName());
                 }
-            } else { // Several landscapes case
-                int n = 0;
-                while (n < nbLandscapes) {
+            }
+            for (int i = 0; i < jsonPaths.length; i++) {
+                Reader reader;
+                if (jsonPaths.length == 1 && jsonPaths[0].equals("-")) {
+                   reader = new BufferedReader(new InputStreamReader(System.in));
+                } else {
+                    reader = new FileReader(jsonPaths[i]);
+                }
+                LandscapeStructure s = LandscapeStructure.fromJSON(reader);
+                // Generate landscape
+                Terrain terrain = new Terrain(new RegularSquareGrid(s.nbRows, s.nbCols));
+                if (terrainInput.equals("")) {
+                    terrain.generateDiamondSquare(roughnessFactor);
+                } else {
+                    terrain.loadFromRaster(terrainInput);
+                }
+                INeighborhood bufferNeighborhood;
+                switch (minDistance) {
+                    case 1:
+                        bufferNeighborhood = Neighborhoods.FOUR_CONNECTED;
+                        break;
+                    case 2:
+                        bufferNeighborhood = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
+                        break;
+                    default:
+                        bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance);
+                        break;
+                }
+                LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
+                        s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
+                );
+                if (nbLandscapes == 1) { // One landscape case
                     boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
                     if (!b) {
-                        System.out.println("Failed to generate landscape " + (n + 1));
+                        System.out.println("FAIL");
                     } else {
-                        System.out.println("Feasible landscape " + (n + 1) + " found after " + landscapeGenerator.nbTry + " tries");
-                        landscapeGenerator.exportRaster(x, y, resolution, srs, output + (n + 1) + ".tif");
+                        System.out.println("Feasible landscape found after " + landscapeGenerator.nbTry + " tries");
+                        landscapeGenerator.exportRaster(x, y, resolution, srs, outputPrefix + "_" + structNames[i] + ".tif");
                     }
-                    n++;
-                    landscapeGenerator.init();
+                } else { // Several landscapes case
+                    int n = 0;
+                    while (n < nbLandscapes) {
+                        boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
+                        if (!b) {
+                            System.out.println("Failed to generate landscape " + (n + 1));
+                        } else {
+                            System.out.println("Feasible landscape " + (n + 1) + " found after " + landscapeGenerator.nbTry + " tries");
+                            landscapeGenerator.exportRaster(x, y, resolution, srs, outputPrefix + "_" + structNames[i] + "_" + (n +  1) + ".tif");
+                        }
+                        n++;
+                        landscapeGenerator.init();
+                    }
                 }
-            }
-            if (!terrainOutput.equals("")) {
-                landscapeGenerator.terrain.exportRaster(x, y, resolution, srs, terrainOutput);
+                if (!terrainOutput.equals("")) {
+                    landscapeGenerator.terrain.exportRaster(x, y, resolution, srs, terrainOutput);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
