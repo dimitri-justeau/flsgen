@@ -35,7 +35,7 @@ public class LandscapeClass {
     public IntVar[] patchSizes;
     public IntVar[] squaredPatchSizes;
     public IntVar sum;
-    public IntVar squaredSum;
+    public IntVar sumOfSquares;
     public IntVar nbPatches;
 
     public LandscapeClass(String name, int index, RegularSquareGrid grid, Model model, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) {
@@ -70,10 +70,10 @@ public class LandscapeClass {
         this.netProduct_ub = (int) (mesh_ub * grid.getNbCells());
         this.squaredPatchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize * maxPatchSize);
         for (int i = 0; i < maxNbPatches; i++) {
-            model.square(squaredPatchSizes[i], patchSizes[i]).post();
+            model.times(patchSizes[i], patchSizes[i], squaredPatchSizes[i]).post();
         }
-        this.squaredSum = model.intVar(netProduct_lb, netProduct_ub);
-        model.square(squaredSum, sum).post();
+        this.sumOfSquares = model.intVar(netProduct_lb, netProduct_ub);
+        model.sum(squaredPatchSizes, "=", sumOfSquares).post();
     }
 
     public void setTotalSize(int minTotal, int maxTotal) {
@@ -118,13 +118,13 @@ public class LandscapeClass {
         return -1;
     }
     public double getMesh() {
-        if (squaredPatchSizes != null) {
-            if (squaredSum.isInstantiated()) {
-                return squaredSum.getValue() / grid.getNbCells();
-            }
-            return -1;
-        } else {
-            int sSum = 0;
+//        if (squaredPatchSizes != null) {
+//            if (sumOfSquares.isInstantiated()) {
+//                return sumOfSquares.getValue() / grid.getNbCells();
+//            }
+//            return -1;
+//        } else {
+            double sSum = 0;
             for (IntVar p : patchSizes) {
                 if (!p.isInstantiated()) {
                     return -1;
@@ -132,6 +132,6 @@ public class LandscapeClass {
                 sSum += p.getValue() * p.getValue();
             }
             return sSum / grid.getNbCells();
-        }
+//        }
     }
 }

@@ -20,10 +20,12 @@ public class CLI_LandscapeStructureSolver implements Runnable {
         DEFAULT,
         RANDOM,
         DOM_OVER_W_DEG,
+        DOM_OVER_W_DEG_REF,
         ACTIVITY_BASED,
         CONFLICT_HISTORY,
         MIN_DOM_UB,
-        MIN_DOM_LB
+        MIN_DOM_LB,
+        MIN_DOM_RANDOM
     }
 
     @CommandLine.Parameters(
@@ -84,6 +86,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                 }
                 LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
                 lSolver.build();
+                lSolver.model.getSolver().showShortStatistics();
                 switch (search) {
                     case DEFAULT:
                         lSolver.setDefaultSearch();
@@ -94,11 +97,17 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     case DOM_OVER_W_DEG:
                         lSolver.setDomOverWDegSearch();
                         break;
+                    case DOM_OVER_W_DEG_REF:
+                        lSolver.setDomOverWDegRefSearch();
+                        break;
                     case MIN_DOM_LB:
                         lSolver.setMinDomLBSearch();
                         break;
                     case MIN_DOM_UB:
                         lSolver.setMinDomUBSearch();
+                        break;
+                    case MIN_DOM_RANDOM:
+                        lSolver.setMinDomRandomSearch();
                         break;
                     case ACTIVITY_BASED:
                         lSolver.setActivityBasedSearch();
@@ -127,7 +136,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     while (n < nbSolutions) {
                         LandscapeStructure s = lSolver.findSolution();
                         if (s != null) {
-                            System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.model.getSolver().getTimeCount() + " s)" + ANSI_RESET);
+                            System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.model.getSolver().getTimeCount() + "s)" + ANSI_RESET);
                             FileWriter writer = new FileWriter(outputPrefix + "_" + targetNames[i] + "_" + (n + 1) + ".json");
                             writer.write(s.toJSON());
                             writer.close();
