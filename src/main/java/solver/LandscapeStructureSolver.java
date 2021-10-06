@@ -6,6 +6,7 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.variables.IntVar;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class LandscapeStructureSolver {
     public List<LandscapeClass> landscapeClasses;
     public IntVar totalSum;
     public boolean isBuilt;
+    public IntVar[] decisionVariables;
 
     public LandscapeStructureSolver(RegularSquareGrid grid) {
         this.grid = grid;
@@ -39,12 +41,52 @@ public class LandscapeStructureSolver {
     public void build() {
         this.totalSum = model.intVar(0, grid.getNbCells());
         IntVar[] sums = new IntVar[landscapeClasses.size()];
+        int nbMaxTotalPatches = 0;
         for (int i = 0; i < landscapeClasses.size(); i++) {
             sums[i] = landscapeClasses.get(i).sum;
+            nbMaxTotalPatches += landscapeClasses.get(i).patchSizes.length;
         }
         model.sum(sums, "=", totalSum).post();
         model.arithm(totalSum, "<=", nbCells).post();
+        this.decisionVariables = new IntVar[nbMaxTotalPatches + landscapeClasses.size()];
+        int n = 0;
+        for (int i = 0; i < landscapeClasses.size(); i++) {
+            for (IntVar var : landscapeClasses.get(i).patchSizes) {
+                this.decisionVariables[n] = var;
+                n++;
+            }
+            decisionVariables[nbMaxTotalPatches + i] = landscapeClasses.get(i).nbPatches;
+        }
         this.isBuilt = true;
+    }
+
+    public void setRandomSearch() {
+        model.getSolver().setSearch(Search.randomSearch(decisionVariables, System.currentTimeMillis()));
+        model.getSolver().setRestartOnSolutions();
+    }
+
+    public void setDomOverWDegSearch() {
+        model.getSolver().setSearch(Search.domOverWDegRefSearch(decisionVariables));
+    }
+
+    public void setActivityBasedSearch() {
+        model.getSolver().setSearch(Search.activityBasedSearch(decisionVariables));
+    }
+
+    public void setDefaultSearch() {
+        model.getSolver().setSearch(Search.defaultSearch(model));
+    }
+
+    public void setConflictHistorySearch() {
+        model.getSolver().setSearch(Search.conflictHistorySearch(decisionVariables));
+    }
+
+    public void setMinDomUBSearch() {
+        model.getSolver().setSearch(Search.minDomUBSearch(decisionVariables));
+    }
+
+    public void setMinDomLBSearch() {
+        model.getSolver().setSearch(Search.minDomLBSearch(decisionVariables));
     }
 
     public LandscapeStructure findSolution() {

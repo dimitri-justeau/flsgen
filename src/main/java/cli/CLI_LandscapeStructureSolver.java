@@ -16,6 +16,16 @@ import static cli.ANSIColors.*;
 )
 public class CLI_LandscapeStructureSolver implements Runnable {
 
+    public enum SearchStrategy {
+        DEFAULT,
+        RANDOM,
+        DOM_OVER_W_DEG,
+        ACTIVITY_BASED,
+        CONFLICT_HISTORY,
+        MIN_DOM_UB,
+        MIN_DOM_LB
+    }
+
     @CommandLine.Parameters(
             description = "JSON output file (or prefix for multiple structure generation) for solution -- Use \"-\" to write to STDOUT " +
                     "(only possible with one structure as input and single-solution generation)",
@@ -37,6 +47,13 @@ public class CLI_LandscapeStructureSolver implements Runnable {
             defaultValue = "1"
     )
     int nbSolutions;
+
+    @CommandLine.Option(
+            names = {"-s", "--search-strategy"},
+            description = "Search strategy to use in the Choco solver (possible values: ${COMPLETION-CANDIDATES}).",
+            defaultValue = "DEFAULT"
+    )
+    SearchStrategy search;
 
     @Override
     public void run() {
@@ -67,6 +84,29 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                 }
                 LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
                 lSolver.build();
+                switch (search) {
+                    case DEFAULT:
+                        lSolver.setDefaultSearch();
+                        break;
+                    case RANDOM:
+                        lSolver.setRandomSearch();
+                        break;
+                    case DOM_OVER_W_DEG:
+                        lSolver.setDomOverWDegSearch();
+                        break;
+                    case MIN_DOM_LB:
+                        lSolver.setMinDomLBSearch();
+                        break;
+                    case MIN_DOM_UB:
+                        lSolver.setMinDomUBSearch();
+                        break;
+                    case ACTIVITY_BASED:
+                        lSolver.setActivityBasedSearch();
+                        break;
+                    case CONFLICT_HISTORY:
+                        lSolver.setConflictHistorySearch();
+                        break;
+                }
                 if (nbSolutions == 1) {
                     // One solution case
                     LandscapeStructure s = lSolver.findSolution();
