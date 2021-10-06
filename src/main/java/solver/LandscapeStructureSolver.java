@@ -48,22 +48,11 @@ public class LandscapeStructureSolver {
     public void build() {
         this.totalSum = model.intVar(0, grid.getNbCells());
         IntVar[] sums = new IntVar[landscapeClasses.size()];
-        int nbMaxTotalPatches = 0;
         for (int i = 0; i < landscapeClasses.size(); i++) {
             sums[i] = landscapeClasses.get(i).sum;
-            nbMaxTotalPatches += landscapeClasses.get(i).patchSizes.length;
         }
         model.sum(sums, "=", totalSum).post();
         model.arithm(totalSum, "<=", nbCells).post();
-//        this.decisionVariables = new IntVar[nbMaxTotalPatches + landscapeClasses.size()];
-//        int n = 0;
-//        for (int i = 0; i < landscapeClasses.size(); i++) {
-//            for (IntVar var : landscapeClasses.get(i).patchSizes) {
-//                this.decisionVariables[n] = var;
-//                n++;
-//            }
-//            decisionVariables[nbMaxTotalPatches + i] = landscapeClasses.get(i).nbPatches;
-//        }
         this.decisionVariables = model.retrieveIntVars(true);
         this.isBuilt = true;
     }
@@ -72,66 +61,22 @@ public class LandscapeStructureSolver {
         long seed = System.currentTimeMillis();
         model.getSolver().setSearch(Search.randomSearch(decisionVariables, seed));
         model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 1.5, new FailCounter(model, 1), 100);
-    }
-
-    public void setDomOverWDegRandomSearch() {
-        long seed = System.currentTimeMillis();
-        IntValueSelector value = new IntDomainRandom(seed);
-        IntValueSelector bound = new IntDomainRandomBound(seed);
-        IntValueSelector selector = var -> {
-            if (var.hasEnumeratedDomain()) {
-                return value.selectValue(var);
-            } else {
-                return bound.selectValue(var);
-            }
-        };
-        model.getSolver().setSearch(Search.intVarSearch(
-                new ConflictHistorySearch(decisionVariables, seed),
-                selector,
-                decisionVariables
-        ));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 2, new FailCounter(model, 1), 100);
-    }
-
-    public void setMinDomRandomSearch() {
-        long seed = System.currentTimeMillis();
-        IntValueSelector value = new IntDomainRandom(seed);
-        IntValueSelector bound = new IntDomainRandomBound(seed);
-        IntValueSelector selector = var -> {
-            if (var.hasEnumeratedDomain()) {
-                return value.selectValue(var);
-            } else {
-                return bound.selectValue(var);
-            }
-        };
-        model.getSolver().setSearch(Search.intVarSearch(
-                new FirstFail(model),
-                selector,
-                decisionVariables
-        ));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 1.5, new FailCounter(model, 1), 100);
+        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
     }
 
     public void setDomOverWDegSearch() {
-//        model.getSolver().setSearch(Search.domOverWDegSearch(decisionVariables));
-        model.getSolver().setSearch(Search.intVarSearch(decisionVariables));
-        model.getSolver().setRestartOnSolutions();
-//        model.getSolver().setGeometricalRestart(100, 2, new FailCounter(model, 1), 100);
+        model.getSolver().setSearch(Search.domOverWDegSearch(decisionVariables));
+        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
     }
 
     public void setDomOverWDegRefSearch() {
         model.getSolver().setSearch(Search.domOverWDegRefSearch(decisionVariables));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 2, new FailCounter(model, 1), 100);
+        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
     }
 
     public void setActivityBasedSearch() {
         model.getSolver().setSearch(Search.activityBasedSearch(decisionVariables));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 2, new FailCounter(model, 1), 100);
+        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
     }
 
     public void setDefaultSearch() {
@@ -140,8 +85,7 @@ public class LandscapeStructureSolver {
 
     public void setConflictHistorySearch() {
         model.getSolver().setSearch(Search.conflictHistorySearch(decisionVariables));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(100, 2, new FailCounter(model, 1), 100);
+        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
     }
 
     public void setMinDomUBSearch() {

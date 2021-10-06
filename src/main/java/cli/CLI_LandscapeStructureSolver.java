@@ -25,7 +25,6 @@ public class CLI_LandscapeStructureSolver implements Runnable {
         CONFLICT_HISTORY,
         MIN_DOM_UB,
         MIN_DOM_LB,
-        MIN_DOM_RANDOM
     }
 
     @CommandLine.Parameters(
@@ -86,7 +85,6 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                 }
                 LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
                 lSolver.build();
-                lSolver.model.getSolver().showShortStatistics();
                 switch (search) {
                     case DEFAULT:
                         lSolver.setDefaultSearch();
@@ -105,9 +103,6 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                         break;
                     case MIN_DOM_UB:
                         lSolver.setMinDomUBSearch();
-                        break;
-                    case MIN_DOM_RANDOM:
-                        lSolver.setMinDomRandomSearch();
                         break;
                     case ACTIVITY_BASED:
                         lSolver.setActivityBasedSearch();
