@@ -6,14 +6,9 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.constraints.nary.nvalue.amnv.differences.D;
 import org.chocosolver.solver.search.limits.FailCounter;
 import org.chocosolver.solver.search.strategy.Search;
-import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
-import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandomBound;
-import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
-import org.chocosolver.solver.search.strategy.selectors.variables.ConflictHistorySearch;
-import org.chocosolver.solver.search.strategy.selectors.variables.DomOverWDeg;
-import org.chocosolver.solver.search.strategy.selectors.variables.FirstFail;
 import org.chocosolver.solver.variables.IntVar;
 
 import java.io.IOException;
@@ -22,6 +17,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LandscapeStructureSolver {
+
+    public static final String KEY_AREA = "AREA";
+    public static final String KEY_CA = "CA";
+    public static final String KEY_PLAND = "PLAND";
+    public static final String KEY_NP = "NP";
+    public static final String KEY_PD = "PD";
+    public static final String KEY_SPI = "SPI";
+    public static final String KEY_LPI = "LPI";
+    public static final String KEY_MESH = "MESH";
+    public static final String KEY_SPLI = "SPLI";
+    public static final String KEY_NPRO = "NPRO";
+    public static final String KEY_SDEN = "SDEN";
+    public static final String KEY_COHE = "COHE";
+    public static final String KEY_DIVI = "DIVI";
 
     public RegularSquareGrid grid;
     public int nbCells;
@@ -152,63 +161,68 @@ public class LandscapeStructureSolver {
             }
             String name = cljson.get("name").toString();
             // Get min and max nb patches
-            if (!cljson.containsKey("nbPatches")) {
-                throw new IOException("'nbPatches' is a mandatory parameter of classes but missing in class " + name);
-            }
-            JsonArray nbPatches = (JsonArray) cljson.get("nbPatches");
-            if (nbPatches.size() != 2) {
-                throw new IOException("'nbPatches' must be an interval of two integer values (in class " + name + ")");
-            }
-            int minNbPatches = Integer.parseInt(nbPatches.get(0).toString());
-            int maxNbPatches = Integer.parseInt(nbPatches.get(1).toString());
+            int[] nbPatches = getIntInterval(cljson, KEY_NP, true, name);
             // Get min and max patch sizes
-            if (!cljson.containsKey("patchSize")) {
-                throw new IOException("'patchSize' is a mandatory parameter of classes but missing in class " + name);
-            }
-            JsonArray patchSize = (JsonArray) cljson.get("patchSize");
-            if (nbPatches.size() != 2) {
-                throw new IOException("'patchSize' must be an interval of two integer values (in class " + name + ")");
-            }
-            int minPatchSize = Integer.parseInt(patchSize.get(0).toString());
-            int maxPatchsize = Integer.parseInt(patchSize.get(1).toString());
+            int[] patchSize = getIntInterval(cljson, KEY_AREA, true, name);
             // Construct the landscape class
-            LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, minNbPatches, maxNbPatches, minPatchSize, maxPatchsize);
+            LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, nbPatches[0], nbPatches[1], patchSize[0], patchSize[1]);
             // Get landscape class constraints
-            // 1. Total size or proportion
-            boolean totalSize = cljson.containsKey("totalSize");
-            boolean landscapeProportion = cljson.containsKey("landscapeProportion");
-            if (totalSize && landscapeProportion) {
-                throw new IOException("'totalSize' and 'landscapeProportion' cannot be used simultaneously (in class " + name + ")");
+            // CA
+            int[] ca = getIntInterval(cljson, KEY_CA, false, name);
+            if (ca != null) {
+                landscapeClass.setClassArea(ca[0], ca[1]);
             }
-            if (totalSize) {
-                JsonArray clTotalSize = (JsonArray) cljson.get("totalSize");
-                if (clTotalSize.size() != 2) {
-                    throw new IOException("'totalSize' must be an interval of two integer values (in class " + name + ")");
-                }
-                int minTotalSize = Integer.parseInt(clTotalSize.get(0).toString());
-                int maxTotalSize = Integer.parseInt(clTotalSize.get(1).toString());
-                landscapeClass.setTotalSize(minTotalSize, maxTotalSize);
+            // PLAND
+            double[] pland = getDoubleInterval(cljson, KEY_PLAND, false, name);
+            if (pland != null) {
+                landscapeClass.setLandscapeProportion(pland[0], pland[1]);
             }
-            if (landscapeProportion) {
-                JsonArray clProportion = (JsonArray) cljson.get("landscapeProportion");
-                if (clProportion.size() != 2) {
-                    throw new IOException("'landscapeProportion' must be an interval of two integer values (in class " + name + ")");
-                }
-                int minProportion = Integer.parseInt(clProportion.get(0).toString());
-                int maxProportion = Integer.parseInt(clProportion.get(1).toString());
-                landscapeClass.setLandscapeProportion(minProportion, maxProportion);
+            // PD
+            double[] pd = getDoubleInterval(cljson, KEY_PD, false, name);
+            if (pd != null) {
+                landscapeClass.setPatchDensity(pd[0], pd[1]);
             }
-            // 2. MESH
-            if (cljson.containsKey("mesh")) {
-                JsonArray clMesh = (JsonArray) cljson.get("mesh");
-                if (clMesh.size() != 2) {
-                    throw new IOException("'mesh' must be an interval of two integer values (in class " + name + ")");
-                }
-                double minMesh = Double.parseDouble(clMesh.get(0).toString());
-                double maxMesh = Double.parseDouble(clMesh.get(1).toString());
-                landscapeClass.setMesh(minMesh, maxMesh);
+            // SPI
+            int[] spi = getIntInterval(cljson, KEY_SPI, false, name);
+            if (spi != null) {
+                landscapeClass.setSmallestPatchSize(spi[0], spi[1]);
             }
-            // 3. All patch with different sizes
+            // LPI
+            int[] lpi = getIntInterval(cljson, KEY_LPI, false, name);
+            if (lpi != null) {
+                landscapeClass.setLargestPatchSize(lpi[0], lpi[1]);
+            }
+            // MESH
+            double[] mesh = getDoubleInterval(cljson, KEY_MESH, false, name);
+            if (mesh != null) {
+                landscapeClass.setMesh(mesh[0], mesh[1]);
+            }
+            // SPLI
+            double[] spli = getDoubleInterval(cljson, KEY_SPLI, false, name);
+            if (spli != null) {
+                landscapeClass.setSplittingIndex(spli[0], spli[1]);
+            }
+            // NPRO
+            int[] npro = getIntInterval(cljson, KEY_NPRO, false, name);
+            if (npro != null) {
+                landscapeClass.setNetProduct(npro[0], npro[1]);
+            }
+            // SDEN
+            double[] sden = getDoubleInterval(cljson, KEY_SPLI, false, name);
+            if (sden != null) {
+                landscapeClass.setSplittingDensity(sden[0], sden[1]);
+            }
+            // COHE
+            double[] cohe = getDoubleInterval(cljson, KEY_COHE, false, name);
+            if (cohe != null) {
+                landscapeClass.setDegreeOfCoherence(cohe[0], cohe[1]);
+            }
+            // DIVI
+            double[] divi = getDoubleInterval(cljson, KEY_DIVI, false, name);
+            if (divi != null) {
+                landscapeClass.setDegreeOfDivision(divi[0], divi[1]);
+            }
+            // All patch with different sizes ?
             if (cljson.containsKey("patchesAllDifferent")) {
                 Boolean clAllDiff = (Boolean) cljson.get("patchesAllDifferent");
                 if (clAllDiff.booleanValue()) {
@@ -217,5 +231,39 @@ public class LandscapeStructureSolver {
             }
         }
         return lStructSolver;
+    }
+
+    public static int[] getIntInterval(JsonObject object, String key, boolean mandatory, String className) throws IOException {
+        if (mandatory) {
+            if (!object.containsKey(key)) {
+                throw new IOException(key + " is a mandatory parameter of classes but missing in class " + className);
+            }
+        } else {
+            if (!object.containsKey(key)) {
+                return null;
+            }
+        }
+        JsonArray interval = (JsonArray) object.get(key);
+        if (interval.size() != 2) {
+            throw new IOException(key + " must be an interval of two integer values (in class " + className + ")");
+        }
+        return new int[] {Integer.parseInt(interval.get(0).toString()), Integer.parseInt(interval.get(1).toString())};
+    }
+
+    public static double[] getDoubleInterval(JsonObject object, String key, boolean mandatory, String className) throws IOException {
+        if (mandatory) {
+            if (!object.containsKey(key)) {
+                throw new IOException(key + " is a mandatory parameter of classes but missing in class " + className);
+            }
+        } else {
+            if (!object.containsKey(key)) {
+                return null;
+            }
+        }
+        JsonArray interval = (JsonArray) object.get(key);
+        if (interval.size() != 2) {
+            throw new IOException(key + " must be an interval of two double values (in class " + className + ")");
+        }
+        return new double[] {Double.parseDouble(interval.get(0).toString()), Double.parseDouble(interval.get(1).toString())};
     }
 }

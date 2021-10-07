@@ -16,6 +16,7 @@ public class LandscapeStructure {
     public int[] nbPatches;
     public int[][] patchSizes;
     public double[] mesh;
+    LandscapeStructureSolver s;
 
     public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, double[] mesh) {
         this.nbRows = nbRows;
@@ -28,6 +29,7 @@ public class LandscapeStructure {
     }
 
     public LandscapeStructure(LandscapeStructureSolver s) {
+        this.s = s;
         this.nbRows = s.grid.getNbRows();
         this.nbCols = s.grid.getNbCols();
         this.names = new String[s.landscapeClasses.size()];
@@ -55,15 +57,26 @@ public class LandscapeStructure {
         for (int i = 0; i < names.length; i++) {
             JsonObject cl = new JsonObject();
             cl.put("name", names[i]);
-            cl.put("totalSize", totalSize[i]);
-            cl.put("nbPatches", nbPatches[i]);
+            cl.put(LandscapeStructureSolver.KEY_CA, totalSize[i]);
+            cl.put(LandscapeStructureSolver.KEY_NP, nbPatches[i]);
             JsonArray sizes = new JsonArray();
             for (int s : patchSizes[i]) {
                 sizes.add(s);
             }
-            cl.put("patchSizes", sizes);
+            cl.put(LandscapeStructureSolver.KEY_AREA, sizes);
+            cl.put(LandscapeStructureSolver.KEY_MESH, mesh[i]);
+            if (s != null) {
+                cl.put(LandscapeStructureSolver.KEY_NPRO, s.landscapeClasses.get(i).getNetProduct());
+                cl.put(LandscapeStructureSolver.KEY_SPLI, s.landscapeClasses.get(i).getSplittingIndex());
+                cl.put(LandscapeStructureSolver.KEY_SDEN, s.landscapeClasses.get(i).getSplittingDensity());
+                cl.put(LandscapeStructureSolver.KEY_COHE, s.landscapeClasses.get(i).getDegreeOfCoherence());
+                cl.put(LandscapeStructureSolver.KEY_DIVI, s.landscapeClasses.get(i).getDegreeOfDivision());
+                cl.put(LandscapeStructureSolver.KEY_PLAND, s.landscapeClasses.get(i).getLandscapeProportion());
+                cl.put(LandscapeStructureSolver.KEY_PD, s.landscapeClasses.get(i).getPatchDensity());
+                cl.put(LandscapeStructureSolver.KEY_SPI, s.landscapeClasses.get(i).getSmallestPatchIndex());
+                cl.put(LandscapeStructureSolver.KEY_LPI, s.landscapeClasses.get(i).getLargestPatchIndex());
+            }
             classes.add(cl);
-            cl.put("mesh", mesh[i]);
         }
         json.put("classes", classes);
         return Jsoner.prettyPrint(json.toJson());
@@ -82,9 +95,9 @@ public class LandscapeStructure {
         for (int i = 0; i < classes.size(); i++) {
             JsonObject c = (JsonObject) classes.get(i);
             names[i] = (String) c.get("name");
-            nbPatches[i] = Integer.parseInt(c.get("nbPatches").toString());
-            mesh[i] = Double.parseDouble(c.get("mesh").toString());
-            JsonArray sizes = (JsonArray) c.get("patchSizes");
+            nbPatches[i] = Integer.parseInt(c.get(LandscapeStructureSolver.KEY_NP).toString());
+            mesh[i] = Double.parseDouble(c.get(LandscapeStructureSolver.KEY_MESH).toString());
+            JsonArray sizes = (JsonArray) c.get(LandscapeStructureSolver.KEY_AREA);
             patchSizes[i] = new int[sizes.size()];
             for (int j = 0; j < sizes.size(); j++) {
                 patchSizes[i][j] = Integer.parseInt(sizes.get(j).toString());

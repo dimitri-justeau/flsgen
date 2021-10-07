@@ -15,6 +15,7 @@ public class LandscapeClass {
     public String name;
     public int index;
     public RegularSquareGrid grid;
+    public int landscapeSize;
 
     // Bounds for number of patches
     public int minNbPatches;
@@ -25,8 +26,6 @@ public class LandscapeClass {
     public int maxPatchSize;
 
     // MESH bounds
-    private int netProduct_lb;
-    private int netProduct_ub;
     public double mesh_lb;
     public double mesh_ub;
 
@@ -43,6 +42,13 @@ public class LandscapeClass {
         this.index = index;
         this.model = model;
         this.grid = grid;
+        this.landscapeSize = grid.getNbCells();
+        if (maxPatchSize < minPatchSize) {
+            throw  new ValueException("Max patch area must be greater than or equal to min patch area");
+        }
+        if (maxNbPatches < minNbPatches) {
+            throw  new ValueException("Max patch area must be greater than or equal to min patch area");
+        }
         this.minNbPatches = minNbPatches;
         this.maxNbPatches = maxNbPatches;
         this.minPatchSize = minPatchSize;
@@ -63,34 +69,189 @@ public class LandscapeClass {
         model.sum(patchSizes, "=", sum).post();
     }
 
-    public void setMesh(double mesh_lb, double mesh_ub) {
-        this.mesh_lb = mesh_lb;
-        this.mesh_ub = mesh_ub;
-        this.netProduct_lb = (int) (mesh_lb * grid.getNbCells());
-        this.netProduct_ub = (int) (mesh_ub * grid.getNbCells());
+    public void initNetProduct(int netProductLB, int netProductUB) {
         this.squaredPatchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize * maxPatchSize);
         for (int i = 0; i < maxNbPatches; i++) {
             model.times(patchSizes[i], patchSizes[i], squaredPatchSizes[i]).post();
         }
-        this.sumOfSquares = model.intVar(netProduct_lb, netProduct_ub);
+        this.sumOfSquares = model.intVar(netProductLB, netProductUB);
         model.sum(squaredPatchSizes, "=", sumOfSquares).post();
     }
 
-    public void setTotalSize(int minTotal, int maxTotal) {
-        model.arithm(sum, ">=", minTotal).post();
-        model.arithm(sum, "<=", maxTotal).post();
+    ///--- USER TARGETS ---///
+
+     // CA - Total class area
+    /**
+     * Set a total class area (CA) target
+     * @param minClassArea
+     * @param maxClassArea
+     */
+    public void setClassArea(int minClassArea, int maxClassArea) {
+        if (maxClassArea < minClassArea) {
+            throw  new ValueException("Max class area must be greater than or equal to min class area");
+        }
+        model.arithm(sum, ">=", minClassArea).post();
+        model.arithm(sum, "<=", maxClassArea).post();
     }
 
-    public void setLandscapeProportion(int minProportion, int maxProportion) throws ValueException {
+    // PLAND - Proportion of landscape
+    /**
+     * Set a proportion of landscape (PLAND) target
+     * @param minProportion
+     * @param maxProportion
+     * @throws ValueException
+     */
+    public void setLandscapeProportion(double minProportion, double maxProportion) throws ValueException {
         if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
             throw new ValueException("Min and max class proportion must be between 0 and 100");
         }
         if (maxProportion < minProportion) {
             throw  new ValueException("Max proportion must be greater than or equal to min proportion");
         }
-        int min = grid.getNbCells() * minProportion / 100;
-        int max = grid.getNbCells() * maxProportion / 100;
-        setTotalSize(min, max);
+        int min = (int) (landscapeSize * minProportion / 100);
+        int max = (int) (landscapeSize * maxProportion / 100);
+        setClassArea(min, max);
+    }
+
+    // PD - Patch density
+    /**
+     * Set a patch density (PD) target
+     * @param minDensity
+     * @param maxDensity
+     */
+    public void setPatchDensity(double minDensity, double maxDensity) {
+        if (maxDensity < minDensity) {
+            throw  new ValueException("Max patch density area must be greater than or equal to min patch density");
+        }
+        int minNbPatches = (int) (minDensity * landscapeSize);
+        int maxNbPatches = (int) (maxDensity * landscapeSize);
+        model.arithm(nbPatches, ">=", minNbPatches).post();
+        model.arithm(nbPatches, "<=", maxNbPatches).post();
+    }
+
+    // SPI - Smallest patch index
+    /**
+     * Set a smallest patch index (SPI) target
+     * @param minSize
+     * @param maxSize
+     */
+    public void setSmallestPatchSize(int minSize, int maxSize) {
+        if (maxSize < minSize) {
+            throw  new ValueException("Max SPI must be greater than or equal to min SPI");
+        }
+        model.min(model.intVar(minSize, maxSize), patchSizes).post();
+    }
+
+    // LPI - Largest patch index
+    /**
+     * Set a largest patch index (LPI) target
+     * @param minSize
+     * @param maxSize
+     */
+    public void setLargestPatchSize(int minSize, int maxSize) {
+        if (maxSize < minSize) {
+            throw  new ValueException("Max LPI must be greater than or equal to min LPI");
+        }
+        model.arithm(patchSizes[patchSizes.length - 1], ">=", minSize).post();
+        model.arithm(patchSizes[patchSizes.length - 1], "<=", maxSize).post();
+    }
+
+    // MESH - Effective mesh size
+    /**
+     * Set an effective mesh size (MESH) target.
+     * @param mesh_lb
+     * @param mesh_ub
+     */
+    public void setMesh(double mesh_lb, double mesh_ub) {
+        if (mesh_ub < mesh_lb) {
+            throw  new ValueException("Max MESH must be greater than or equal to min MESH");
+        }
+        this.mesh_lb = mesh_lb;
+        this.mesh_ub = mesh_ub;
+        int netProduct_lb = (int) (mesh_lb * landscapeSize);
+        int netProduct_ub = (int) (mesh_ub * landscapeSize);
+        setNetProduct(netProduct_lb, netProduct_ub);
+    }
+
+    // NPRO - Net product
+    /**
+     * Set a net product (NPRO) target
+     * @param minNetProduct
+     * @param maxNetProduct
+     */
+    public void setNetProduct(int minNetProduct, int maxNetProduct) {
+        if (maxNetProduct < minNetProduct) {
+            throw  new ValueException("Max NPRO must be greater than or equal to min NPRO");
+        }
+        if (sumOfSquares == null) {
+            initNetProduct(minNetProduct, maxNetProduct);
+        }
+        model.arithm(sumOfSquares, ">=", minNetProduct).post();
+        model.arithm(sumOfSquares, "<=", maxNetProduct).post();
+    }
+
+    // SPLI - Splitting index
+    /**
+     * Set a splitting index (SPLI) target
+     * @param minSplittingIndex
+     * @param maxSplittingIndex
+     */
+    public void setSplittingIndex(double minSplittingIndex, double maxSplittingIndex) {
+        if (maxSplittingIndex < minSplittingIndex) {
+            throw  new ValueException("Max SPLI must be greater than or equal to min SPLI");
+        }
+        int netProductLB = (int) (landscapeSize * landscapeSize / maxSplittingIndex);
+        int netProductUB = (int) (landscapeSize * landscapeSize / minSplittingIndex);
+        setNetProduct(netProductLB, netProductUB);
+    }
+
+    // SDEN - Splitting density
+    /**
+     * Set a splitting density (SDEN) target
+     * @param minSplittingDensity
+     * @param maxSplittingDensity
+     */
+    public void setSplittingDensity(double minSplittingDensity, double maxSplittingDensity) {
+        if (maxSplittingDensity < minSplittingDensity) {
+            throw  new ValueException("Max SDEN must be greater than or equal to min SDEN");
+        }
+        int netProductLB = (int) (landscapeSize / maxSplittingDensity);
+        int netProductUB = (int) (landscapeSize / minSplittingDensity);
+        setNetProduct(netProductLB, netProductUB);
+    }
+
+    // COHE - Degree of coherence
+    /**
+     * Set a degree of coherence (COHE) index
+     * @param minCoherence
+     * @param maxCoherence
+     */
+    public void setDegreeOfCoherence(double minCoherence, double maxCoherence) {
+        if (minCoherence < 0 || minCoherence > 1 || maxCoherence < 0 || maxCoherence > 1) {
+            throw new ValueException("Min and max coherence must be between 0 and 1");
+        }
+        if (maxCoherence < minCoherence) {
+            throw  new ValueException("Max COHE must be greater than or equal to min COHE");
+        }
+        int netProductLB = (int) (minCoherence * landscapeSize * landscapeSize);
+        int netProductUB = (int) (maxCoherence * landscapeSize * landscapeSize);
+        setNetProduct(netProductLB, netProductUB);
+    }
+
+    // DIVI - Degree of landscape division
+    /**
+     * Set a degree of division (DIVI) target
+     * @param minDivision
+     * @param maxDivision
+     */
+    public void setDegreeOfDivision(double minDivision, double maxDivision) {
+        if (minDivision < 0 || minDivision > 1 || maxDivision < 0 || maxDivision > 1) {
+            throw new ValueException("Min and max division must be between 0 and 1");
+        }
+        if (maxDivision < minDivision) {
+            throw  new ValueException("Max DIVI must be greater than or equal to min DIVI");
+        }
+        setDegreeOfCoherence(1 - maxDivision, 1 -minDivision);
     }
 
     public void setAllPatchesDifferentSize() {
@@ -117,21 +278,51 @@ public class LandscapeClass {
         }
         return -1;
     }
-    public double getMesh() {
-//        if (squaredPatchSizes != null) {
-//            if (sumOfSquares.isInstantiated()) {
-//                return sumOfSquares.getValue() / grid.getNbCells();
-//            }
-//            return -1;
-//        } else {
-            double sSum = 0;
-            for (IntVar p : patchSizes) {
-                if (!p.isInstantiated()) {
-                    return -1;
-                }
-                sSum += p.getValue() * p.getValue();
+
+    public double getLandscapeProportion() {
+        return 100 * (1.0 * getTotalSize()) / (1.0 * landscapeSize);
+    }
+
+    public double getPatchDensity() {
+        return (1.0 * getNbPatches()) / (1.0 * landscapeSize);
+    }
+
+    public int getSmallestPatchIndex() {
+        return getPatchSizes()[0];
+    }
+
+    public int getLargestPatchIndex() {
+        return getPatchSizes()[getNbPatches() - 1];
+    }
+
+    public int getNetProduct() {
+        int npro = 0;
+        for (IntVar p : patchSizes) {
+            if (!p.isInstantiated()) {
+                return -1;
             }
-            return sSum / grid.getNbCells();
-//        }
+            npro += p.getValue() * p.getValue();
+        }
+        return npro;
+    }
+
+    public double getMesh() {
+        return (1.0 * getNetProduct()) / (1.0 * landscapeSize);
+    }
+
+    public double getSplittingIndex() {
+        return (1.0 * landscapeSize * landscapeSize) / (1.0 * getNetProduct());
+    }
+
+    public double getSplittingDensity() {
+        return (1.0 * landscapeSize) / (1.0 * getNetProduct());
+    }
+
+    public double getDegreeOfCoherence() {
+        return (1.0 * getNetProduct()) / (1.0 * landscapeSize * landscapeSize);
+    }
+
+    public double getDegreeOfDivision() {
+        return 1 - getDegreeOfCoherence();
     }
 }
