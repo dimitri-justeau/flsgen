@@ -325,7 +325,8 @@ public class LandscapeGenerator {
                 int[] sizes = structure.patchSizes[i];
                 System.out.println("Number of patches = " + nbPatches);
                 System.out.println("Patch sizes = " + Arrays.toString(sizes));
-                for (int k : sizes) {
+                for (int j = sizes.length - 1; j > 0; j--) {
+                    int k = sizes[j];
                     System.out.println("Generating patch of size " + k);
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
