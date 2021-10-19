@@ -114,7 +114,7 @@ public class LandscapeStructureSolver {
 
     public LandscapeStructure findSolution(int limitInSeconds) {
         if (limitInSeconds > 0) {
-            model.getSolver().addStopCriterion(new TimeCounter(model, (long) (limitInSeconds * 10e9)));
+            model.getSolver().addStopCriterion(new TimeCounter(model, (long) (limitInSeconds * 1e9)));
         }
         if (model.getSolver().solve()) {
             return new LandscapeStructure(this);
