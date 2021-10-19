@@ -12,20 +12,20 @@ public class LandscapeStructure {
     public int nbRows;
     public int nbCols;
     public String[] names;
-    public int[] totalSize;
-    public int[] nbPatches;
-    public int[][] patchSizes;
-    public double[] mesh;
+    public int[] totalSize; // CA
+    public int[] nbPatches; // NP
+    public int[][] patchSizes; // AREA
+    public long[] npro; // NPRO
     LandscapeStructureSolver s;
 
-    public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, double[] mesh) {
+    public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, long[] npro) {
         this.nbRows = nbRows;
         this.nbCols = nbCols;
         this.names = names;
         this.totalSize = totalSize;
         this.nbPatches = nbPatches;
         this.patchSizes = patchSizes;
-        this.mesh = mesh;
+        this.npro = npro;
     }
 
     public LandscapeStructure(LandscapeStructureSolver s) {
@@ -36,12 +36,12 @@ public class LandscapeStructure {
         this.totalSize = new int[s.landscapeClasses.size()];
         this.nbPatches = new int[s.landscapeClasses.size()];
         this.patchSizes = new int[s.landscapeClasses.size()][];
-        this.mesh = new double[s.landscapeClasses.size()];
+        this.npro = new long[s.landscapeClasses.size()];
         for (int i = 0; i < s.landscapeClasses.size(); i++) {
             names[i] = s.landscapeClasses.get(i).name;
             nbPatches[i] = s.landscapeClasses.get(i).getNbPatches();
             patchSizes[i] = s.landscapeClasses.get(i).getPatchSizes();
-            mesh[i] = s.landscapeClasses.get(i).getMesh();
+            npro[i] = s.landscapeClasses.get(i).getNetProduct();
             totalSize[i] = s.landscapeClasses.get(i).getTotalSize();
         }
     }
@@ -64,18 +64,16 @@ public class LandscapeStructure {
                 sizes.add(s);
             }
             cl.put(LandscapeStructureSolver.KEY_AREA, sizes);
-            cl.put(LandscapeStructureSolver.KEY_MESH, mesh[i]);
-            if (s != null) {
-                cl.put(LandscapeStructureSolver.KEY_NPRO, s.landscapeClasses.get(i).getNetProduct());
-                cl.put(LandscapeStructureSolver.KEY_SPLI, s.landscapeClasses.get(i).getSplittingIndex());
-                cl.put(LandscapeStructureSolver.KEY_SDEN, s.landscapeClasses.get(i).getSplittingDensity());
-                cl.put(LandscapeStructureSolver.KEY_COHE, s.landscapeClasses.get(i).getDegreeOfCoherence());
-                cl.put(LandscapeStructureSolver.KEY_DIVI, s.landscapeClasses.get(i).getDegreeOfDivision());
-                cl.put(LandscapeStructureSolver.KEY_PLAND, s.landscapeClasses.get(i).getLandscapeProportion());
-                cl.put(LandscapeStructureSolver.KEY_PD, s.landscapeClasses.get(i).getPatchDensity());
-                cl.put(LandscapeStructureSolver.KEY_SPI, s.landscapeClasses.get(i).getSmallestPatchIndex());
-                cl.put(LandscapeStructureSolver.KEY_LPI, s.landscapeClasses.get(i).getLargestPatchIndex());
-            }
+            cl.put(LandscapeStructureSolver.KEY_NPRO, npro[i]);
+            cl.put(LandscapeStructureSolver.KEY_MESH, getMesh(i));
+            cl.put(LandscapeStructureSolver.KEY_SPLI, getSplittingIndex(i));
+            cl.put(LandscapeStructureSolver.KEY_SDEN, getSplittingDensity(i));
+            cl.put(LandscapeStructureSolver.KEY_COHE, getDegreeOfCoherence(i));
+            cl.put(LandscapeStructureSolver.KEY_DIVI, getDegreeOfDivision(i));
+            cl.put(LandscapeStructureSolver.KEY_PLAND, getLandscapeProportion(i));
+            cl.put(LandscapeStructureSolver.KEY_PD, getPatchDensity(i));
+            cl.put(LandscapeStructureSolver.KEY_SPI, getSmallestPatchIndex(i));
+            cl.put(LandscapeStructureSolver.KEY_LPI, getLargestPatchIndex(i));
             classes.add(cl);
         }
         json.put("classes", classes);
@@ -91,18 +89,74 @@ public class LandscapeStructure {
         int[] totalSize = new int[classes.size()];
         int[] nbPatches = new int[classes.size()];
         int[][] patchSizes = new int[classes.size()][];
-        double[] mesh = new double[classes.size()];
+        long[] npro = new long[classes.size()];
         for (int i = 0; i < classes.size(); i++) {
             JsonObject c = (JsonObject) classes.get(i);
             names[i] = (String) c.get("name");
             nbPatches[i] = Integer.parseInt(c.get(LandscapeStructureSolver.KEY_NP).toString());
-            mesh[i] = Double.parseDouble(c.get(LandscapeStructureSolver.KEY_MESH).toString());
+            npro[i] = Long.parseLong(c.get(LandscapeStructureSolver.KEY_NPRO).toString());
             JsonArray sizes = (JsonArray) c.get(LandscapeStructureSolver.KEY_AREA);
             patchSizes[i] = new int[sizes.size()];
             for (int j = 0; j < sizes.size(); j++) {
                 patchSizes[i][j] = Integer.parseInt(sizes.get(j).toString());
             }
         }
-        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, mesh);
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
+    }
+
+    public int getLandscapeSize() {
+        return nbRows * nbCols;
+    }
+
+    public int getNbPatches(int classId) {
+        return nbPatches[classId];
+    }
+
+    public int[] getPatchSizes(int classId) {
+        return patchSizes[classId];
+    }
+
+    public int getTotalSize(int classId) {
+        return totalSize[classId];
+    }
+
+    public double getLandscapeProportion(int classId) {
+        return 100 * (1.0 * getTotalSize(classId)) / (1.0 * getLandscapeSize());
+    }
+
+    public double getPatchDensity(int classId) {
+        return (1.0 * getNbPatches(classId)) / (1.0 * getLandscapeSize());
+    }
+
+    public int getSmallestPatchIndex(int classId) {
+        return getPatchSizes(classId)[0];
+    }
+
+    public int getLargestPatchIndex(int classId) {
+        return getPatchSizes(classId)[getNbPatches(classId) - 1];
+    }
+
+    public long getNetProduct(int classId) {
+        return npro[classId];
+    }
+
+    public double getMesh(int classId) {
+        return (1.0 * getNetProduct(classId)) / (1.0 * getLandscapeSize());
+    }
+
+    public double getSplittingIndex(int classId) {
+        return (1.0 * getLandscapeSize() * getLandscapeSize()) / (1.0 * getNetProduct(classId));
+    }
+
+    public double getSplittingDensity(int classId) {
+        return (1.0 * getLandscapeSize()) / (1.0 * getNetProduct(classId));
+    }
+
+    public double getDegreeOfCoherence(int classId) {
+        return (1.0 * getNetProduct(classId)) / (1.0 * getLandscapeSize() * getLandscapeSize());
+    }
+
+    public double getDegreeOfDivision(int classId) {
+        return 1 - getDegreeOfCoherence(classId);
     }
 }

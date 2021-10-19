@@ -59,6 +59,7 @@ public class LandscapeStructureSolver {
         IntVar[] sums = new IntVar[landscapeClasses.size()];
         for (int i = 0; i < landscapeClasses.size(); i++) {
             sums[i] = landscapeClasses.get(i).sum;
+            model.arithm(sums[i], "<", model.intVar(nbCells), "-", landscapeClasses.get(i).nbPatches).post();
         }
         model.sum(sums, "=", totalSum).post();
         model.arithm(totalSum, "<=", nbCells).post();

@@ -3,7 +3,9 @@ package solver;
 import grid.regular.square.RegularSquareGrid;
 import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
+import solver.choco.PropSumOfSquares;
 
 import java.util.Arrays;
 
@@ -69,14 +71,15 @@ public class LandscapeClass {
         model.sum(patchSizes, "=", sum).post();
     }
 
-    public void initNetProduct(int netProductLB, int netProductUB) {
-        this.squaredPatchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize * maxPatchSize);
-        for (int i = 0; i < maxNbPatches; i++) {
-            model.times(patchSizes[i], patchSizes[i], squaredPatchSizes[i]).post();
-        }
-        this.sumOfSquares = model.intVar(netProductLB, netProductUB);
-        model.sum(squaredPatchSizes, "=", sumOfSquares).post();
-    }
+//    public void initNetProduct(int netProductLB, int netProductUB) {
+//        this.squaredPatchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize * maxPatchSize);
+//        for (int i = 0; i < maxNbPatches; i++) {
+//            model.times(patchSizes[i], patchSizes[i], squaredPatchSizes[i]).post();
+//        }
+//        this.sumOfSquares = model.intVar(netProductLB, netProductUB);
+//        model.sum(squaredPatchSizes, "=", sumOfSquares).post();
+//        model.post(new Constraint("sumOfSquares", new PropSumOfSquares(patchSizes, netProductLB, netProductUB)));
+//    }
 
     ///--- USER TARGETS ---///
 
@@ -168,8 +171,8 @@ public class LandscapeClass {
         }
         this.mesh_lb = mesh_lb;
         this.mesh_ub = mesh_ub;
-        int netProduct_lb = (int) (mesh_lb * landscapeSize);
-        int netProduct_ub = (int) (mesh_ub * landscapeSize);
+        long netProduct_lb = (long) (mesh_lb * landscapeSize);
+        long netProduct_ub = (long) (mesh_ub * landscapeSize);
         setNetProduct(netProduct_lb, netProduct_ub);
     }
 
@@ -179,15 +182,16 @@ public class LandscapeClass {
      * @param minNetProduct
      * @param maxNetProduct
      */
-    public void setNetProduct(int minNetProduct, int maxNetProduct) {
+    public void setNetProduct(long minNetProduct, long maxNetProduct) {
         if (maxNetProduct < minNetProduct) {
             throw  new ValueException("Max NPRO must be greater than or equal to min NPRO");
         }
-        if (sumOfSquares == null) {
-            initNetProduct(minNetProduct, maxNetProduct);
-        }
-        model.arithm(sumOfSquares, ">=", minNetProduct).post();
-        model.arithm(sumOfSquares, "<=", maxNetProduct).post();
+//        if (sumOfSquares == null) {
+//            initNetProduct(minNetProduct, maxNetProduct);
+//        }
+        model.post(new Constraint("sumOfSquares", new PropSumOfSquares(patchSizes, minNetProduct, maxNetProduct)));
+//        model.arithm(sumOfSquares, ">=", minNetProduct).post();
+//        model.arithm(sumOfSquares, "<=", maxNetProduct).post();
     }
 
     // SPLI - Splitting index
@@ -200,8 +204,8 @@ public class LandscapeClass {
         if (maxSplittingIndex < minSplittingIndex) {
             throw  new ValueException("Max SPLI must be greater than or equal to min SPLI");
         }
-        int netProductLB = (int) (landscapeSize * landscapeSize / maxSplittingIndex);
-        int netProductUB = (int) (landscapeSize * landscapeSize / minSplittingIndex);
+        long netProductLB = (long) (landscapeSize * landscapeSize / maxSplittingIndex);
+        long netProductUB = (long) (landscapeSize * landscapeSize / minSplittingIndex);
         setNetProduct(netProductLB, netProductUB);
     }
 
@@ -215,8 +219,8 @@ public class LandscapeClass {
         if (maxSplittingDensity < minSplittingDensity) {
             throw  new ValueException("Max SDEN must be greater than or equal to min SDEN");
         }
-        int netProductLB = (int) (landscapeSize / maxSplittingDensity);
-        int netProductUB = (int) (landscapeSize / minSplittingDensity);
+        long netProductLB = (long) (landscapeSize / maxSplittingDensity);
+        long netProductUB = (long) (landscapeSize / minSplittingDensity);
         setNetProduct(netProductLB, netProductUB);
     }
 
@@ -233,8 +237,8 @@ public class LandscapeClass {
         if (maxCoherence < minCoherence) {
             throw  new ValueException("Max COHE must be greater than or equal to min COHE");
         }
-        int netProductLB = (int) (minCoherence * landscapeSize * landscapeSize);
-        int netProductUB = (int) (maxCoherence * landscapeSize * landscapeSize);
+        long netProductLB = (long) (minCoherence * landscapeSize * landscapeSize);
+        long netProductUB = (long) (maxCoherence * landscapeSize * landscapeSize);
         setNetProduct(netProductLB, netProductUB);
     }
 
@@ -246,7 +250,7 @@ public class LandscapeClass {
      */
     public void setDegreeOfDivision(double minDivision, double maxDivision) {
         if (minDivision < 0 || minDivision > 1 || maxDivision < 0 || maxDivision > 1) {
-            throw new ValueException("Min and max division must be between 0 and 1");
+            throw new ValueException("Min and max degree of division must be between 0 and 1");
         }
         if (maxDivision < minDivision) {
             throw  new ValueException("Max DIVI must be greater than or equal to min DIVI");
@@ -295,13 +299,14 @@ public class LandscapeClass {
         return getPatchSizes()[getNbPatches() - 1];
     }
 
-    public int getNetProduct() {
-        int npro = 0;
+    public long getNetProduct() {
+        long npro = 0;
         for (IntVar p : patchSizes) {
             if (!p.isInstantiated()) {
                 return -1;
             }
-            npro += p.getValue() * p.getValue();
+            long v = new Long(p.getValue()).longValue();
+            npro += v * v;
         }
         return npro;
     }
