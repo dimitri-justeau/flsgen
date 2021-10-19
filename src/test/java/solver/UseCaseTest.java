@@ -82,7 +82,6 @@ public class UseCaseTest {
             LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100);
             c.setMesh(0.999 * m, 1.001 * m);
             ls.build();
-            ls.setRandomSearch();
             LandscapeStructure s = ls.findSolution();
             System.out.println("MESH = " + s.getMesh(0));
             System.out.println("PLAND = " + s.getLandscapeProportion(0));
@@ -92,7 +91,7 @@ public class UseCaseTest {
             INeighborhood d = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
             LandscapeGenerator generator = new LandscapeGenerator(s, n, d, t);
             generator.generate(0.5, 10, 10);
-            generator.exportRaster(0, 0, 1, "EPSG:3163", "/home/djusteau/Documents/testPolyomino/solutions2/MESH__" + m + ".tif");
+//            generator.exportRaster(0, 0, 1, "EPSG:3163", "/home/djusteau/Documents/testPolyomino/solutions2/MESH__" + m + ".tif");
         }
     }
 }

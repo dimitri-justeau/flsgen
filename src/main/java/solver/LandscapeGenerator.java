@@ -89,7 +89,9 @@ public class LandscapeGenerator {
     }
 
     public boolean generatePatch(int classId, int size, double terrainDependency, boolean noHole) {
-        assert avalaibleCells[classId].size() >= size;
+        if (avalaibleCells[classId].size() < size) {
+            return false;
+        }
         int[] cells = new int[size];
         cells[0] = getRandomCell(avalaibleCells[classId]);
         int current = cells[0];
