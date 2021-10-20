@@ -14,7 +14,7 @@ import solver.Terrain;
 import java.io.*;
 
 @CommandLine.Command(
-        name = "generator",
+        name = "generate",
         mixinStandardHelpOptions = true,
         description = "Generate landscapes from given structures. To produce more realistic landscape, " +
                 "the algorithm relies on a terrain either given as input or automatically generated as" +
