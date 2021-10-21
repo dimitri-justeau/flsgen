@@ -6,12 +6,10 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 import grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
-import org.chocosolver.solver.constraints.nary.nvalue.amnv.differences.D;
 import org.chocosolver.solver.search.limits.FailCounter;
 import org.chocosolver.solver.search.limits.TimeCounter;
 import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.util.criteria.Criterion;
 
 import java.io.IOException;
 import java.io.Reader;

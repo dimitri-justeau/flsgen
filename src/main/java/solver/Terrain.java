@@ -1,10 +1,8 @@
 package solver;
 
 import grid.regular.square.RegularSquareGrid;
-import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridCoverageFactory;
-import org.geotools.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -36,7 +34,7 @@ public class Terrain {
         int nRow = gridCov.getRenderedImage().getHeight();
         int nCol = gridCov.getRenderedImage().getWidth();
         if (nRow != grid.getNbRows() || nCol != grid.getNbCols()) {
-            throw new ValueException("Input terrain raster must have the same dimensions as the landscape to generate");
+            throw new RuntimeException("Input terrain raster must have the same dimensions as the landscape to generate");
         }
         DataBuffer buff = gridCov.getRenderedImage().getData().getDataBuffer();
         dem = IntStream.range(0, grid.getNbCells())

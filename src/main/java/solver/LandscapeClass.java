@@ -1,7 +1,6 @@
 package solver;
 
 import grid.regular.square.RegularSquareGrid;
-import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
@@ -46,10 +45,10 @@ public class LandscapeClass {
         this.grid = grid;
         this.landscapeSize = grid.getNbCells();
         if (maxPatchSize < minPatchSize) {
-            throw  new ValueException("Max patch area must be greater than or equal to min patch area");
+            throw new RuntimeException("Max patch area must be greater than or equal to min patch area");
         }
         if (maxNbPatches < minNbPatches) {
-            throw  new ValueException("Max patch area must be greater than or equal to min patch area");
+            throw new RuntimeException("Max patch area must be greater than or equal to min patch area");
         }
         this.minNbPatches = minNbPatches;
         this.maxNbPatches = maxNbPatches;
@@ -91,7 +90,7 @@ public class LandscapeClass {
      */
     public void setClassArea(int minClassArea, int maxClassArea) {
         if (maxClassArea < minClassArea) {
-            throw  new ValueException("Max class area must be greater than or equal to min class area");
+            throw new RuntimeException("Max class area must be greater than or equal to min class area");
         }
         model.arithm(sum, ">=", minClassArea).post();
         model.arithm(sum, "<=", maxClassArea).post();
@@ -102,14 +101,14 @@ public class LandscapeClass {
      * Set a proportion of landscape (PLAND) target
      * @param minProportion
      * @param maxProportion
-     * @throws ValueException
+     * @throws RuntimeException
      */
-    public void setLandscapeProportion(double minProportion, double maxProportion) throws ValueException {
+    public void setLandscapeProportion(double minProportion, double maxProportion) {
         if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
-            throw new ValueException("Min and max class proportion must be between 0 and 100");
+            throw new RuntimeException("Min and max class proportion must be between 0 and 100");
         }
         if (maxProportion < minProportion) {
-            throw  new ValueException("Max proportion must be greater than or equal to min proportion");
+            throw new RuntimeException("Max proportion must be greater than or equal to min proportion");
         }
         int min = (int) (landscapeSize * minProportion / 100);
         int max = (int) (landscapeSize * maxProportion / 100);
@@ -124,7 +123,7 @@ public class LandscapeClass {
      */
     public void setPatchDensity(double minDensity, double maxDensity) {
         if (maxDensity < minDensity) {
-            throw  new ValueException("Max patch density area must be greater than or equal to min patch density");
+            throw new RuntimeException("Max patch density area must be greater than or equal to min patch density");
         }
         int minNbPatches = (int) (minDensity * landscapeSize);
         int maxNbPatches = (int) (maxDensity * landscapeSize);
@@ -140,7 +139,7 @@ public class LandscapeClass {
      */
     public void setSmallestPatchSize(int minSize, int maxSize) {
         if (maxSize < minSize) {
-            throw  new ValueException("Max SPI must be greater than or equal to min SPI");
+            throw new RuntimeException("Max SPI must be greater than or equal to min SPI");
         }
         model.min(model.intVar(minSize, maxSize), patchSizes).post();
     }
@@ -153,7 +152,7 @@ public class LandscapeClass {
      */
     public void setLargestPatchSize(int minSize, int maxSize) {
         if (maxSize < minSize) {
-            throw  new ValueException("Max LPI must be greater than or equal to min LPI");
+            throw new RuntimeException("Max LPI must be greater than or equal to min LPI");
         }
         model.arithm(patchSizes[patchSizes.length - 1], ">=", minSize).post();
         model.arithm(patchSizes[patchSizes.length - 1], "<=", maxSize).post();
@@ -167,7 +166,7 @@ public class LandscapeClass {
      */
     public void setMesh(double mesh_lb, double mesh_ub) {
         if (mesh_ub < mesh_lb) {
-            throw  new ValueException("Max MESH must be greater than or equal to min MESH");
+            throw new RuntimeException("Max MESH must be greater than or equal to min MESH");
         }
         this.mesh_lb = mesh_lb;
         this.mesh_ub = mesh_ub;
@@ -184,7 +183,7 @@ public class LandscapeClass {
      */
     public void setNetProduct(long minNetProduct, long maxNetProduct) {
         if (maxNetProduct < minNetProduct) {
-            throw  new ValueException("Max NPRO must be greater than or equal to min NPRO");
+            throw new RuntimeException("Max NPRO must be greater than or equal to min NPRO");
         }
 //        if (sumOfSquares == null) {
 //            initNetProduct(minNetProduct, maxNetProduct);
@@ -202,7 +201,7 @@ public class LandscapeClass {
      */
     public void setSplittingIndex(double minSplittingIndex, double maxSplittingIndex) {
         if (maxSplittingIndex < minSplittingIndex) {
-            throw  new ValueException("Max SPLI must be greater than or equal to min SPLI");
+            throw new RuntimeException("Max SPLI must be greater than or equal to min SPLI");
         }
         long netProductLB = (long) (landscapeSize * landscapeSize / maxSplittingIndex);
         long netProductUB = (long) (landscapeSize * landscapeSize / minSplittingIndex);
@@ -217,7 +216,7 @@ public class LandscapeClass {
      */
     public void setSplittingDensity(double minSplittingDensity, double maxSplittingDensity) {
         if (maxSplittingDensity < minSplittingDensity) {
-            throw  new ValueException("Max SDEN must be greater than or equal to min SDEN");
+            throw new RuntimeException("Max SDEN must be greater than or equal to min SDEN");
         }
         long netProductLB = (long) (landscapeSize / maxSplittingDensity);
         long netProductUB = (long) (landscapeSize / minSplittingDensity);
@@ -232,10 +231,10 @@ public class LandscapeClass {
      */
     public void setDegreeOfCoherence(double minCoherence, double maxCoherence) {
         if (minCoherence < 0 || minCoherence > 1 || maxCoherence < 0 || maxCoherence > 1) {
-            throw new ValueException("Min and max coherence must be between 0 and 1");
+            throw new RuntimeException("Min and max coherence must be between 0 and 1");
         }
         if (maxCoherence < minCoherence) {
-            throw  new ValueException("Max COHE must be greater than or equal to min COHE");
+            throw new RuntimeException("Max COHE must be greater than or equal to min COHE");
         }
         long netProductLB = (long) (minCoherence * landscapeSize * landscapeSize);
         long netProductUB = (long) (maxCoherence * landscapeSize * landscapeSize);
@@ -250,10 +249,10 @@ public class LandscapeClass {
      */
     public void setDegreeOfDivision(double minDivision, double maxDivision) {
         if (minDivision < 0 || minDivision > 1 || maxDivision < 0 || maxDivision > 1) {
-            throw new ValueException("Min and max degree of division must be between 0 and 1");
+            throw new RuntimeException("Min and max degree of division must be between 0 and 1");
         }
         if (maxDivision < minDivision) {
-            throw  new ValueException("Max DIVI must be greater than or equal to min DIVI");
+            throw new RuntimeException("Max DIVI must be greater than or equal to min DIVI");
         }
         setDegreeOfCoherence(1 - maxDivision, 1 -minDivision);
     }

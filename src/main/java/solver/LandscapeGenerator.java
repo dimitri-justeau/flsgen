@@ -166,6 +166,16 @@ public class LandscapeGenerator {
         }
     }
 
+    /**
+     * Find the next cell to add in patch
+     * @param classId patch class
+     * @param n current patch size
+     * @param cells patch cells
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param noHole if true ensure that the patch contains no hole
+     * @param strategy neighborhood selection strategy
+     * @return the next cell to add in patch
+     */
     public int findNext(int classId, int n, int[] cells, double terrainDependency, boolean noHole, NeighborhoodSelectionStrategy strategy) {
         switch (strategy) {
             case FROM_ALL:
@@ -180,6 +190,9 @@ public class LandscapeGenerator {
         }
     }
 
+    /**
+     * @return true if there is no hole in patches.
+     */
     public boolean assertNoHole() {
         if (nbAvailableCells == 0) {
             return true;
@@ -218,6 +231,15 @@ public class LandscapeGenerator {
         return false;
     }
 
+    /**
+     * Find the next cell to add in the patch from all neighboring cells
+     * @param classId patch class
+     * @param n current patch size
+     * @param cells patch cells
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param noHole if true ensure that the patch contains no hole
+     * @return the next cell to include in patch
+     */
     public int findNextFromAll(int classId, int n, int[] cells, double terrainDependency, boolean noHole) {
         List<Integer> neigh = new ArrayList<>();
         for (int i = 0; i < n; i++) {
@@ -261,7 +283,7 @@ public class LandscapeGenerator {
                 }
             }
         } else {
-            // 90% chances of choosing the lowest elevation neighbor - 10% of choosing any neighbor
+            // terrain dependency
             int minIdx = 0;
             int maxIdx = (int) Math.round(neigh.size() * (1 - terrainDependency));
             maxIdx = maxIdx > 0 ? maxIdx : 1;
@@ -275,6 +297,14 @@ public class LandscapeGenerator {
         return next;
     };
 
+    /**
+     * Find the next cell to add in patch from the neighbors of the previously added cell
+     * @param classId patch class
+     * @param n current patch size
+     * @param cells patch cells
+     * @param noHole if true ensure that the patch contains no hole
+     * @return the next cell to include in patch
+     */
     public int findNextFromLastPossibleCell(int classId, int n, int[] cells, boolean noHole) {
         List<Integer> neigh = new ArrayList<>();
         for (int i = n - 1; i >= 0; i--) {
@@ -314,6 +344,16 @@ public class LandscapeGenerator {
         return cells.get(new SecureRandom().nextInt(cells.size()));
     }
 
+    /**
+     * Export the generated landscape to a raster file
+     * @param x X position (geographical coordinates) of the top-left output raster pixel
+     * @param y Y position (geographical coordinates) of the top-left output raster pixel
+     * @param resolution Spatial resolution (geographical units) of the output raster (i.e. pixel dimension)
+     * @param epsg EPSG identifier of the output projection
+     * @param dest path of output raster
+     * @throws IOException
+     * @throws FactoryException
+     */
     public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
         GridCoverageFactory gcf = new GridCoverageFactory();
         CoordinateReferenceSystem crs = CRS.decode(epsg);
@@ -335,6 +375,13 @@ public class LandscapeGenerator {
         System.out.println("Landscape raster exported at " + dest);
     }
 
+    /**
+     * Landscape generation main algorithm
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param maxTry Maximum number of trials for landscape generation
+     * @param maxTryPatch Maximum number of trials for patch generation
+     * @return true if landscape generation was successful, otherwise false
+     */
     public boolean generate(double terrainDependency, int maxTry, int maxTryPatch) {
         nbTry = 0;
         boolean b = false;
