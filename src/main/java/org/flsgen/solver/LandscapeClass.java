@@ -22,6 +22,7 @@
 
 package org.flsgen.solver;
 
+import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.constraints.Constraint;
@@ -60,17 +61,17 @@ public class LandscapeClass {
 //    private IntVar sumOfSquares;
     protected IntVar nbPatches;
 
-    public LandscapeClass(String name, int index, RegularSquareGrid grid, Model model, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) {
+    public LandscapeClass(String name, int index, RegularSquareGrid grid, Model model, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) throws FlsgenException {
         this.name = name;
         this.index = index;
         this.model = model;
         this.grid = grid;
         this.landscapeSize = grid.getNbCells();
         if (maxPatchSize < minPatchSize) {
-            throw new RuntimeException("Max patch area must be greater than or equal to min patch area");
+            throw new FlsgenException("Max patch area must be greater than or equal to min patch area");
         }
         if (maxNbPatches < minNbPatches) {
-            throw new RuntimeException("Max patch area must be greater than or equal to min patch area");
+            throw new FlsgenException("Max patch area must be greater than or equal to min patch area");
         }
         this.minNbPatches = minNbPatches;
         this.maxNbPatches = maxNbPatches;
@@ -110,9 +111,9 @@ public class LandscapeClass {
      * @param minClassArea
      * @param maxClassArea
      */
-    public void setClassArea(int minClassArea, int maxClassArea) {
+    public void setClassArea(int minClassArea, int maxClassArea) throws FlsgenException {
         if (maxClassArea < minClassArea) {
-            throw new RuntimeException("Max class area must be greater than or equal to min class area");
+            throw new FlsgenException("Max class area must be greater than or equal to min class area");
         }
         model.arithm(sum, ">=", minClassArea).post();
         model.arithm(sum, "<=", maxClassArea).post();
@@ -123,14 +124,13 @@ public class LandscapeClass {
      * Set a proportion of landscape (PLAND) target
      * @param minProportion
      * @param maxProportion
-     * @throws RuntimeException
      */
-    public void setLandscapeProportion(double minProportion, double maxProportion) {
+    public void setLandscapeProportion(double minProportion, double maxProportion) throws FlsgenException {
         if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
-            throw new RuntimeException("Min and max class proportion must be between 0 and 100");
+            throw new FlsgenException("Min and max class proportion must be between 0 and 100");
         }
         if (maxProportion < minProportion) {
-            throw new RuntimeException("Max proportion must be greater than or equal to min proportion");
+            throw new FlsgenException("Max proportion must be greater than or equal to min proportion");
         }
         int min = (int) (landscapeSize * minProportion / 100);
         int max = (int) (landscapeSize * maxProportion / 100);
@@ -143,9 +143,9 @@ public class LandscapeClass {
      * @param minDensity
      * @param maxDensity
      */
-    public void setPatchDensity(double minDensity, double maxDensity) {
+    public void setPatchDensity(double minDensity, double maxDensity) throws FlsgenException {
         if (maxDensity < minDensity) {
-            throw new RuntimeException("Max patch density area must be greater than or equal to min patch density");
+            throw new FlsgenException("Max patch density area must be greater than or equal to min patch density");
         }
         int minNbPatches = (int) (minDensity * landscapeSize);
         int maxNbPatches = (int) (maxDensity * landscapeSize);
@@ -159,9 +159,9 @@ public class LandscapeClass {
      * @param minSize
      * @param maxSize
      */
-    public void setSmallestPatchSize(int minSize, int maxSize) {
+    public void setSmallestPatchSize(int minSize, int maxSize) throws FlsgenException {
         if (maxSize < minSize) {
-            throw new RuntimeException("Max SPI must be greater than or equal to min SPI");
+            throw new FlsgenException("Max SPI must be greater than or equal to min SPI");
         }
         model.min(model.intVar(minSize, maxSize), patchSizes).post();
     }
@@ -172,9 +172,9 @@ public class LandscapeClass {
      * @param minSize
      * @param maxSize
      */
-    public void setLargestPatchSize(int minSize, int maxSize) {
+    public void setLargestPatchSize(int minSize, int maxSize) throws FlsgenException {
         if (maxSize < minSize) {
-            throw new RuntimeException("Max LPI must be greater than or equal to min LPI");
+            throw new FlsgenException("Max LPI must be greater than or equal to min LPI");
         }
         model.arithm(patchSizes[patchSizes.length - 1], ">=", minSize).post();
         model.arithm(patchSizes[patchSizes.length - 1], "<=", maxSize).post();
@@ -186,9 +186,9 @@ public class LandscapeClass {
      * @param mesh_lb
      * @param mesh_ub
      */
-    public void setMesh(double mesh_lb, double mesh_ub) {
+    public void setMesh(double mesh_lb, double mesh_ub) throws FlsgenException {
         if (mesh_ub < mesh_lb) {
-            throw new RuntimeException("Max MESH must be greater than or equal to min MESH");
+            throw new FlsgenException("Max MESH must be greater than or equal to min MESH");
         }
         this.mesh_lb = mesh_lb;
         this.mesh_ub = mesh_ub;
@@ -203,9 +203,9 @@ public class LandscapeClass {
      * @param minNetProduct
      * @param maxNetProduct
      */
-    public void setNetProduct(long minNetProduct, long maxNetProduct) {
+    public void setNetProduct(long minNetProduct, long maxNetProduct) throws FlsgenException {
         if (maxNetProduct < minNetProduct) {
-            throw new RuntimeException("Max NPRO must be greater than or equal to min NPRO");
+            throw new FlsgenException("Max NPRO must be greater than or equal to min NPRO");
         }
 //        if (sumOfSquares == null) {
 //            initNetProduct(minNetProduct, maxNetProduct);
@@ -221,9 +221,9 @@ public class LandscapeClass {
      * @param minSplittingIndex
      * @param maxSplittingIndex
      */
-    public void setSplittingIndex(double minSplittingIndex, double maxSplittingIndex) {
+    public void setSplittingIndex(double minSplittingIndex, double maxSplittingIndex) throws FlsgenException {
         if (maxSplittingIndex < minSplittingIndex) {
-            throw new RuntimeException("Max SPLI must be greater than or equal to min SPLI");
+            throw new FlsgenException("Max SPLI must be greater than or equal to min SPLI");
         }
         long netProductLB = (long) (landscapeSize * landscapeSize / maxSplittingIndex);
         long netProductUB = (long) (landscapeSize * landscapeSize / minSplittingIndex);
@@ -236,9 +236,9 @@ public class LandscapeClass {
      * @param minSplittingDensity
      * @param maxSplittingDensity
      */
-    public void setSplittingDensity(double minSplittingDensity, double maxSplittingDensity) {
+    public void setSplittingDensity(double minSplittingDensity, double maxSplittingDensity) throws FlsgenException {
         if (maxSplittingDensity < minSplittingDensity) {
-            throw new RuntimeException("Max SDEN must be greater than or equal to min SDEN");
+            throw new FlsgenException("Max SDEN must be greater than or equal to min SDEN");
         }
         long netProductLB = (long) (landscapeSize / maxSplittingDensity);
         long netProductUB = (long) (landscapeSize / minSplittingDensity);
@@ -251,12 +251,12 @@ public class LandscapeClass {
      * @param minCoherence
      * @param maxCoherence
      */
-    public void setDegreeOfCoherence(double minCoherence, double maxCoherence) {
+    public void setDegreeOfCoherence(double minCoherence, double maxCoherence) throws FlsgenException {
         if (minCoherence < 0 || minCoherence > 1 || maxCoherence < 0 || maxCoherence > 1) {
-            throw new RuntimeException("Min and max coherence must be between 0 and 1");
+            throw new FlsgenException("Min and max coherence must be between 0 and 1");
         }
         if (maxCoherence < minCoherence) {
-            throw new RuntimeException("Max COHE must be greater than or equal to min COHE");
+            throw new FlsgenException("Max COHE must be greater than or equal to min COHE");
         }
         long netProductLB = (long) (minCoherence * landscapeSize * landscapeSize);
         long netProductUB = (long) (maxCoherence * landscapeSize * landscapeSize);
@@ -269,12 +269,12 @@ public class LandscapeClass {
      * @param minDivision
      * @param maxDivision
      */
-    public void setDegreeOfDivision(double minDivision, double maxDivision) {
+    public void setDegreeOfDivision(double minDivision, double maxDivision) throws FlsgenException {
         if (minDivision < 0 || minDivision > 1 || maxDivision < 0 || maxDivision > 1) {
-            throw new RuntimeException("Min and max degree of division must be between 0 and 1");
+            throw new FlsgenException("Min and max degree of division must be between 0 and 1");
         }
         if (maxDivision < minDivision) {
-            throw new RuntimeException("Max DIVI must be greater than or equal to min DIVI");
+            throw new FlsgenException("Max DIVI must be greater than or equal to min DIVI");
         }
         setDegreeOfCoherence(1 - maxDivision, 1 -minDivision);
     }

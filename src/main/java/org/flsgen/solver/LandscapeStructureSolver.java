@@ -26,6 +26,7 @@ import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
+import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.search.limits.FailCounter;
@@ -83,9 +84,9 @@ public class LandscapeStructureSolver {
      * @param maxPatchSize upper bound for patch size
      * @return a landscape class object that can be further constrained
      */
-    public LandscapeClass landscapeClass(String name, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) {
+    public LandscapeClass landscapeClass(String name, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) throws FlsgenException {
         if (isBuilt) {
-            throw new RuntimeException("Cannot add a landscape class to a landscape structure org.flsgen.solver which is already built");
+            throw new FlsgenException("Cannot add a landscape class to a landscape structure org.flsgen.solver which is already built");
         }
         LandscapeClass ls = new LandscapeClass(name, landscapeClasses.size(), grid, getModel(), minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
         landscapeClasses.add(ls);
@@ -202,7 +203,7 @@ public class LandscapeStructureSolver {
      * @throws IOException
      * @throws JsonException
      */
-    public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, JsonException {
+    public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, JsonException, FlsgenException {
         JsonObject targets = (JsonObject) Jsoner.deserialize(reader);
         // Get map dimensions
         if (!targets.containsKey("nbRows") || !targets.containsKey("nbCols")) {

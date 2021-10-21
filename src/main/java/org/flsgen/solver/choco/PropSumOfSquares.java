@@ -66,7 +66,8 @@ public class PropSumOfSquares extends Propagator<IntVar> {
      */
     protected long sumUB;
 
-    protected long LB, UB;
+    protected long LB;
+    protected long UB;
 
     protected long b;
 
@@ -121,7 +122,8 @@ public class PropSumOfSquares extends Propagator<IntVar> {
      */
     protected void prepare() {
         sumLB = sumUB = 0;
-        int lb, ub;
+        int lb;
+        int ub;
         maxI = 0;
         for (int i = 0; i < vars.length; i++) {
             lb = vars[i].getLB();
@@ -227,7 +229,9 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         }
         if (maxI > F) {
             maxI = 0;
-            int lb, ub, i = 0;
+            int lb;
+            int ub;
+            int i = 0;
             // positive coefficients first
             while (i < vars.length) {
                 long longI = Long.valueOf(I[i]);
@@ -290,7 +294,8 @@ public class PropSumOfSquares extends Propagator<IntVar> {
 
     @Override
     public ESat isEntailed() {
-        long sumUB = 0, sumLB = 0;
+        long sumUB = 0;
+        long sumLB = 0;
         for (int i =0; i < vars.length; i++) { // first the positive coefficients
             long longLB = Long.valueOf(vars[i].getLB());
             long longUB = Long.valueOf(vars[i].getUB());

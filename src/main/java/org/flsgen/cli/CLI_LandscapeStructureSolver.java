@@ -81,11 +81,11 @@ public class CLI_LandscapeStructureSolver implements Runnable {
     @Override
     public void run() {
         if (nbSolutions <= 0) {
-            System.err.println(ANSIColors.ANSI_RED + "Number of solutions must be at least 1" + ANSIColors.ANSI_RESET);
+            System.err.println(ANSI_RED + "Number of solutions must be at least 1" + ANSI_RESET);
             return;
         }
         if (nbSolutions > 1 && outputPrefix.equals("-")) {
-            System.err.println(ANSIColors.ANSI_RED + "STDOUT solution output is only possible when nbSolutions = 1" + ANSIColors.ANSI_RESET);
+            System.err.println(ANSI_RED + "STDOUT solution output is only possible when nbSolutions = 1" + ANSI_RESET);
             return;
         }
         try {
@@ -132,6 +132,8 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     case CONFLICT_HISTORY:
                         lSolver.setConflictHistorySearch();
                         break;
+                    default:
+                        lSolver.setDefaultSearch();
                 }
                 if (nbSolutions == 1) {
                     // One solution case

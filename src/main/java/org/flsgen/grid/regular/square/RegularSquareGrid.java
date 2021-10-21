@@ -29,7 +29,8 @@ import org.flsgen.grid.Grid;
  */
 public class RegularSquareGrid extends Grid {
 
-    protected int nbRows, nbCols;
+    protected int nbRows;
+    protected int nbCols;
 
     public RegularSquareGrid(int nbRows, int nbCols) {
         assert nbCols > 0;

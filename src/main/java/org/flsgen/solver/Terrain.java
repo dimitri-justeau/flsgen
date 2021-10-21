@@ -22,6 +22,7 @@
 
 package org.flsgen.solver;
 
+import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridCoverageFactory;
@@ -49,14 +50,14 @@ public class Terrain {
         this.grid = grid;
     }
 
-    public void loadFromRaster(String rasterPath) throws IOException {
+    public void loadFromRaster(String rasterPath) throws IOException, FlsgenException {
         File file = new File(rasterPath);
         GeoTiffReader reader = new GeoTiffReader(file);
         GridCoverage2D gridCov = reader.read(null);
         int nRow = gridCov.getRenderedImage().getHeight();
         int nCol = gridCov.getRenderedImage().getWidth();
         if (nRow != grid.getNbRows() || nCol != grid.getNbCols()) {
-            throw new RuntimeException("Input terrain raster must have the same dimensions as the landscape to generate");
+            throw new FlsgenException("Input terrain raster must have the same dimensions as the landscape to generate");
         }
         DataBuffer buff = gridCov.getRenderedImage().getData().getDataBuffer();
         dem = IntStream.range(0, grid.getNbCells())

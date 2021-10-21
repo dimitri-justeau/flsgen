@@ -23,10 +23,10 @@
 package org.flsgen.solver;
 
 import com.github.cliftonlabs.json_simple.JsonException;
+import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.opengis.referencing.FactoryException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -36,7 +36,7 @@ import java.io.IOException;
 public class UseCaseTest {
 
     @Test
-    public void useCase1() throws IOException, JsonException {
+    public void useCase1() throws IOException, JsonException, FlsgenException {
         String path = getClass().getClassLoader().getResource("targets_1.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
@@ -64,7 +64,7 @@ public class UseCaseTest {
     }
 
     @Test
-    public void useCase2() throws IOException, JsonException {
+    public void useCase2() throws IOException, JsonException, FlsgenException {
         String path = getClass().getClassLoader().getResource("targets_2.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
@@ -74,15 +74,15 @@ public class UseCaseTest {
     }
 
     @Test
-    public void useCase3() throws IOException, JsonException {
+    public void useCase3() throws IOException, JsonException, FlsgenException {
         String path = getClass().getClassLoader().getResource("targets_3.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
-        LandscapeStructure s = ls.findSolution();
+        ls.findSolution();
     }
 
     @Test
-    public void useCase4() throws IOException, JsonException {
+    public void useCase4() throws IOException, JsonException, FlsgenException {
         String path = getClass().getClassLoader().getResource("targets_4.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
@@ -90,7 +90,7 @@ public class UseCaseTest {
         LandscapeStructure s = ls.findSolution();
     }
 
-    @Test public void useCaseFromScratch() throws FactoryException, IOException {
+    @Test public void useCaseFromScratch() throws FlsgenException {
         RegularSquareGrid grid = new RegularSquareGrid(200, 200);
         double[] mesh = new double[] {1000, 2000, 3000, 4000, 5000};
         for (double m : mesh) {

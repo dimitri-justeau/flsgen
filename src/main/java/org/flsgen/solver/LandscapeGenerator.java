@@ -240,7 +240,7 @@ public class LandscapeGenerator {
                 break;
             }
         }
-        int nbOut = nbAvailableCells;;
+        int nbOut = nbAvailableCells;
         visited[current] = true;
         queue[front] = current;
         rear++;
@@ -255,10 +255,7 @@ public class LandscapeGenerator {
                 }
             }
         }
-        if (nbVisited == nbOut) {
-            return true;
-        }
-        return false;
+        return nbVisited == nbOut;
     }
 
     /**
