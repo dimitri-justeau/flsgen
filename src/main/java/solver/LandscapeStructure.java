@@ -1,3 +1,26 @@
+/*
+ *
+ * Copyright (c) 2021, Dimitri Justeau-Allaire
+ *
+ * Institut Agronomique neo-Caledonien (IAC), 98800 Noumea, New Caledonia
+ * AMAP, Univ Montpellier, CIRAD, CNRS, INRA, IRD, Montpellier, France
+ *
+ * This file is part of flsgen.
+ *
+ * flsgen is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * flsgen is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package solver;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -7,16 +30,19 @@ import com.github.cliftonlabs.json_simple.Jsoner;
 
 import java.io.Reader;
 
+/**
+ * Class representing a landscape structure instantiation - for storing and retrieving solutions.
+ */
 public class LandscapeStructure {
 
-    public int nbRows;
-    public int nbCols;
-    public String[] names;
-    public int[] totalSize; // CA
-    public int[] nbPatches; // NP
-    public int[][] patchSizes; // AREA
-    public long[] npro; // NPRO
-    LandscapeStructureSolver s;
+    protected int nbRows;
+    protected int nbCols;
+    protected String[] names;
+    protected int[] totalSize; // CA
+    protected int[] nbPatches; // NP
+    protected int[][] patchSizes; // AREA
+    protected long[] npro; // NPRO
+    protected LandscapeStructureSolver s;
 
     public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, long[] npro) {
         this.nbRows = nbRows;
@@ -51,8 +77,8 @@ public class LandscapeStructure {
      */
     public String toJSON() {
         JsonObject json = new JsonObject();
-        json.put("nbRows", nbRows);
-        json.put("nbCols", nbCols);
+        json.put("nbRows", getNbRows());
+        json.put("nbCols", getNbCols());
         JsonArray classes = new JsonArray();
         for (int i = 0; i < names.length; i++) {
             JsonObject cl = new JsonObject();
@@ -105,7 +131,7 @@ public class LandscapeStructure {
     }
 
     public int getLandscapeSize() {
-        return nbRows * nbCols;
+        return getNbRows() * getNbCols();
     }
 
     public int getNbPatches(int classId) {
@@ -158,5 +184,13 @@ public class LandscapeStructure {
 
     public double getDegreeOfDivision(int classId) {
         return 1 - getDegreeOfCoherence(classId);
+    }
+
+    public int getNbRows() {
+        return nbRows;
+    }
+
+    public int getNbCols() {
+        return nbCols;
     }
 }

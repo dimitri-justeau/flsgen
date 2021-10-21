@@ -1,3 +1,26 @@
+/*
+ *
+ * Copyright (c) 2021, Dimitri Justeau-Allaire
+ *
+ * Institut Agronomique neo-Caledonien (IAC), 98800 Noumea, New Caledonia
+ * AMAP, Univ Montpellier, CIRAD, CNRS, INRA, IRD, Montpellier, France
+ *
+ * This file is part of flsgen.
+ *
+ * flsgen is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * flsgen is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package cli;
 
 import org.apache.commons.io.FilenameUtils;
@@ -115,7 +138,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     // One solution case
                     LandscapeStructure s = lSolver.findSolution();
                     if (s != null) {
-                        System.err.println(ANSI_GREEN + "Solution found in " + lSolver.model.getSolver().getTimeCount() + " s" + ANSI_RESET);
+                        System.err.println(ANSI_GREEN + "Solution found in " + lSolver.getModel().getSolver().getTimeCount() + " s" + ANSI_RESET);
                         if (outputPrefix.equals("-")) {
                             System.out.println(s.toJSON());
                         } else {
@@ -131,7 +154,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     while (n < nbSolutions) {
                         LandscapeStructure s = lSolver.findSolution();
                         if (s != null) {
-                            System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.model.getSolver().getTimeCount() + "s)" + ANSI_RESET);
+                            System.err.println(ANSI_GREEN + "Solution " + (n + 1) + " found (total solving time " + lSolver.getModel().getSolver().getTimeCount() + "s)" + ANSI_RESET);
                             FileWriter writer = new FileWriter(outputPrefix + "_" + targetNames[i] + "_" + (n + 1) + ".json");
                             writer.write(s.toJSON());
                             writer.close();

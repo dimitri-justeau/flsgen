@@ -1,3 +1,26 @@
+/*
+ *
+ * Copyright (c) 2021, Dimitri Justeau-Allaire
+ *
+ * Institut Agronomique neo-Caledonien (IAC), 98800 Noumea, New Caledonia
+ * AMAP, Univ Montpellier, CIRAD, CNRS, INRA, IRD, Montpellier, France
+ *
+ * This file is part of flsgen.
+ *
+ * flsgen is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * flsgen is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package solver;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -16,6 +39,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Landscape structure solver - given a list of landscape classes along with user targets, use choco
+ * to find landscape structures satisfying user targets.
+ */
 public class LandscapeStructureSolver {
 
     public static final String KEY_AREA = "AREA";
@@ -32,13 +59,13 @@ public class LandscapeStructureSolver {
     public static final String KEY_COHE = "COHE";
     public static final String KEY_DIVI = "DIVI";
 
-    public RegularSquareGrid grid;
-    public int nbCells;
-    public Model model;
-    public List<LandscapeClass> landscapeClasses;
-    public IntVar totalSum;
-    public boolean isBuilt;
-    public IntVar[] decisionVariables;
+    protected RegularSquareGrid grid;
+    protected int nbCells;
+    protected Model model;
+    protected List<LandscapeClass> landscapeClasses;
+    protected IntVar totalSum;
+    protected boolean isBuilt;
+    protected IntVar[] decisionVariables;
 
     public LandscapeStructureSolver(RegularSquareGrid grid) {
         this.grid = grid;
@@ -48,73 +75,96 @@ public class LandscapeStructureSolver {
         this.isBuilt = false;
     }
 
+    /**
+     * Constructs a landscape class to include in the problem
+     * @param name class name
+     * @param minNbPatches lower bound for the number of patches
+     * @param maxNbPatches upper bound for the number of patches
+     * @param minPatchSize lower bound for patch size
+     * @param maxPatchSize upper bound for patch size
+     * @return a landscape class object that can be further constrained
+     */
     public LandscapeClass landscapeClass(String name, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) {
-        LandscapeClass ls = new LandscapeClass(name, landscapeClasses.size(), grid, model, minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
+        if (isBuilt) {
+            throw new RuntimeException("Cannot add a landscape class to a landscape structure solver which is already built");
+        }
+        LandscapeClass ls = new LandscapeClass(name, landscapeClasses.size(), grid, getModel(), minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
         landscapeClasses.add(ls);
         return ls;
     }
 
+    /**
+     * Build the model - Need to be call before "findSolution"
+     */
     public void build() {
-        this.totalSum = model.intVar(0, grid.getNbCells());
+        this.totalSum = getModel().intVar(0, grid.getNbCells());
         IntVar[] sums = new IntVar[landscapeClasses.size()];
         for (int i = 0; i < landscapeClasses.size(); i++) {
             sums[i] = landscapeClasses.get(i).sum;
-            model.arithm(sums[i], "<", model.intVar(nbCells), "-", landscapeClasses.get(i).nbPatches).post();
+            getModel().arithm(sums[i], "<", getModel().intVar(nbCells), "-", landscapeClasses.get(i).nbPatches).post();
         }
-        model.sum(sums, "=", totalSum).post();
-        model.arithm(totalSum, "<=", nbCells).post();
-        this.decisionVariables = model.retrieveIntVars(true);
+        getModel().sum(sums, "=", totalSum).post();
+        getModel().arithm(totalSum, "<=", nbCells).post();
+        this.decisionVariables = getModel().retrieveIntVars(true);
         this.isBuilt = true;
     }
 
     public void setRandomSearch() {
         long seed = System.currentTimeMillis();
-        model.getSolver().setSearch(Search.randomSearch(decisionVariables, seed));
-        model.getSolver().setRestartOnSolutions();
-        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
+        getModel().getSolver().setSearch(Search.randomSearch(decisionVariables, seed));
+        getModel().getSolver().setRestartOnSolutions();
+        getModel().getSolver().setGeometricalRestart(200, 1.5, new FailCounter(getModel(), 1), 100);
     }
 
     public void setDomOverWDegSearch() {
-        model.getSolver().setSearch(Search.domOverWDegSearch(decisionVariables));
-        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
+        getModel().getSolver().setSearch(Search.domOverWDegSearch(decisionVariables));
+        getModel().getSolver().setGeometricalRestart(200, 1.5, new FailCounter(getModel(), 1), 100);
     }
 
     public void setDomOverWDegRefSearch() {
-        model.getSolver().setSearch(Search.domOverWDegRefSearch(decisionVariables));
-        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
+        getModel().getSolver().setSearch(Search.domOverWDegRefSearch(decisionVariables));
+        getModel().getSolver().setGeometricalRestart(200, 1.5, new FailCounter(getModel(), 1), 100);
     }
 
     public void setActivityBasedSearch() {
-        model.getSolver().setSearch(Search.activityBasedSearch(decisionVariables));
-        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
+        getModel().getSolver().setSearch(Search.activityBasedSearch(decisionVariables));
+        getModel().getSolver().setGeometricalRestart(200, 1.5, new FailCounter(getModel(), 1), 100);
     }
 
     public void setDefaultSearch() {
-        model.getSolver().setSearch(Search.defaultSearch(model));
+        getModel().getSolver().setSearch(Search.defaultSearch(getModel()));
     }
 
     public void setConflictHistorySearch() {
-        model.getSolver().setSearch(Search.conflictHistorySearch(decisionVariables));
-        model.getSolver().setGeometricalRestart(200, 1.5, new FailCounter(model, 1), 100);
+        getModel().getSolver().setSearch(Search.conflictHistorySearch(decisionVariables));
+        getModel().getSolver().setGeometricalRestart(200, 1.5, new FailCounter(getModel(), 1), 100);
     }
 
     public void setMinDomUBSearch() {
-        model.getSolver().setSearch(Search.minDomUBSearch(decisionVariables));
+        getModel().getSolver().setSearch(Search.minDomUBSearch(decisionVariables));
     }
 
     public void setMinDomLBSearch() {
-        model.getSolver().setSearch(Search.minDomLBSearch(decisionVariables));
+        getModel().getSolver().setSearch(Search.minDomLBSearch(decisionVariables));
     }
 
     public LandscapeStructure findSolution() {
         return findSolution(0);
     }
 
+    /**
+     * Solves the model
+     * @param limitInSeconds The time limit. If 0, no time limit is set.
+     * @return A LandscapeStructure object (solution wrapper) if successful, null otherwise.
+     */
     public LandscapeStructure findSolution(int limitInSeconds) {
-        if (limitInSeconds > 0) {
-            model.getSolver().addStopCriterion(new TimeCounter(model, (long) (limitInSeconds * 1e9)));
+        if (!isBuilt) {
+            build();
         }
-        if (model.getSolver().solve()) {
+        if (limitInSeconds > 0) {
+            getModel().getSolver().addStopCriterion(new TimeCounter(getModel(), (long) (limitInSeconds * 1e9)));
+        }
+        if (getModel().getSolver().solve()) {
             return new LandscapeStructure(this);
         }
         return null;
@@ -146,6 +196,13 @@ public class LandscapeStructureSolver {
         return Jsoner.prettyPrint(json.toJson());
     }
 
+    /**
+     * Instantiate a solver from JSON problem descrition
+     * @param reader the reader to the JSON problem description
+     * @return the created LandscapeStructureSolver
+     * @throws IOException
+     * @throws JsonException
+     */
     public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, JsonException {
         JsonObject targets = (JsonObject) Jsoner.deserialize(reader);
         // Get map dimensions
@@ -273,5 +330,9 @@ public class LandscapeStructureSolver {
             throw new IOException(key + " must be an interval of two double values (in class " + className + ")");
         }
         return new double[] {Double.parseDouble(interval.get(0).toString()), Double.parseDouble(interval.get(1).toString())};
+    }
+
+    public Model getModel() {
+        return model;
     }
 }

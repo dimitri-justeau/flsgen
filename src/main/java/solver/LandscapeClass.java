@@ -1,3 +1,26 @@
+/*
+ *
+ * Copyright (c) 2021, Dimitri Justeau-Allaire
+ *
+ * Institut Agronomique neo-Caledonien (IAC), 98800 Noumea, New Caledonia
+ * AMAP, Univ Montpellier, CIRAD, CNRS, INRA, IRD, Montpellier, France
+ *
+ * This file is part of flsgen.
+ *
+ * flsgen is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * flsgen is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package solver;
 
 import grid.regular.square.RegularSquareGrid;
@@ -13,30 +36,30 @@ import java.util.Arrays;
  */
 public class LandscapeClass {
 
-    public String name;
-    public int index;
-    public RegularSquareGrid grid;
-    public int landscapeSize;
+    protected String name;
+    protected int index;
+    protected RegularSquareGrid grid;
+    protected int landscapeSize;
 
     // Bounds for number of patches
-    public int minNbPatches;
-    public int maxNbPatches;
+    protected int minNbPatches;
+    protected int maxNbPatches;
 
     // Bounds for size of patches
-    public int minPatchSize;
-    public int maxPatchSize;
+    protected int minPatchSize;
+    protected int maxPatchSize;
 
     // MESH bounds
-    public double mesh_lb;
-    public double mesh_ub;
+    protected double mesh_lb;
+    protected double mesh_ub;
 
     // Choco variables
-    public Model model;
-    public IntVar[] patchSizes;
-    public IntVar[] squaredPatchSizes;
-    public IntVar sum;
-    public IntVar sumOfSquares;
-    public IntVar nbPatches;
+    protected Model model;
+    protected IntVar[] patchSizes;
+//    protected IntVar[] squaredPatchSizes;
+    protected IntVar sum;
+//    private IntVar sumOfSquares;
+    protected IntVar nbPatches;
 
     public LandscapeClass(String name, int index, RegularSquareGrid grid, Model model, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) {
         this.name = name;
