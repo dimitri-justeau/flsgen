@@ -258,10 +258,16 @@ public class LandscapeClass {
         setDegreeOfCoherence(1 - maxDivision, 1 -minDivision);
     }
 
+    /**
+     * Post a constraint ensuring that all patch will have different areas
+     */
     public void setAllPatchesDifferentSize() {
         model.allDifferentExcept0(patchSizes).post();
     }
 
+    /**
+     * @return The number of patches if the corresponding variable is instantiated
+     */
     public int getNbPatches() {
         if (nbPatches.isInstantiated()) {
             return nbPatches.getValue();
@@ -269,6 +275,9 @@ public class LandscapeClass {
         return -1;
     }
 
+    /**
+     * @return The patch sizes if the corresponding variables are instantiated
+     */
     public int[] getPatchSizes() {
         return Arrays.stream(patchSizes)
                 .mapToInt(v -> v.isInstantiated() ? v.getValue() : -1)
@@ -276,6 +285,9 @@ public class LandscapeClass {
                 .toArray();
     }
 
+    /**
+     * @return The total class area if the corresponding variable is instantiated
+     */
     public int getTotalSize() {
         if (sum.isInstantiated()) {
             return sum.getValue();
@@ -283,22 +295,37 @@ public class LandscapeClass {
         return -1;
     }
 
+    /**
+     * @return The landscape proportion if the corresponding variable is instantiated
+     */
     public double getLandscapeProportion() {
         return 100 * (1.0 * getTotalSize()) / (1.0 * landscapeSize);
     }
 
+    /**
+     * @return The patch density if the corresponding variable is instantiated
+     */
     public double getPatchDensity() {
         return (1.0 * getNbPatches()) / (1.0 * landscapeSize);
     }
 
+    /**
+     * @return The the smallest patch index if the corresponding variable is instantiated
+     */
     public int getSmallestPatchIndex() {
         return getPatchSizes()[0];
     }
 
+    /**
+     * @return The largest patch index if the corresponding variable is instantiated
+     */
     public int getLargestPatchIndex() {
         return getPatchSizes()[getNbPatches() - 1];
     }
 
+    /**
+     * @return The net product if the corresponding variable is instantiated
+     */
     public long getNetProduct() {
         long npro = 0;
         for (IntVar p : patchSizes) {
@@ -311,22 +338,37 @@ public class LandscapeClass {
         return npro;
     }
 
+    /**
+     * @return The effective mesh size if the corresponding variable is instantiated
+     */
     public double getMesh() {
         return (1.0 * getNetProduct()) / (1.0 * landscapeSize);
     }
 
+    /**
+     * @return The splitting index if the corresponding variable is instantiated
+     */
     public double getSplittingIndex() {
         return (1.0 * landscapeSize * landscapeSize) / (1.0 * getNetProduct());
     }
 
+    /**
+     * @return The splitting density if the corresponding variable is instantiated
+     */
     public double getSplittingDensity() {
         return (1.0 * landscapeSize) / (1.0 * getNetProduct());
     }
 
+    /**
+     * @return The degree of coherence if the corresponding variable is instantiated
+     */
     public double getDegreeOfCoherence() {
         return (1.0 * getNetProduct()) / (1.0 * landscapeSize * landscapeSize);
     }
 
+    /**
+     * @return The degree of division if the corresponding variable is instantiated
+     */
     public double getDegreeOfDivision() {
         return 1 - getDegreeOfCoherence();
     }

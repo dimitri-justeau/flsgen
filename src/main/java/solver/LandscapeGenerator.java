@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
+/**
+ * Stochastic landscape generator from predefined landscape structures. Rely on a terrain to guide the generation.
+ * The terrain can be either specified as input of generated with the diamond-square algorithm.
+ */
 public class LandscapeGenerator {
 
     public static final int NODATA = -1;
@@ -70,6 +74,9 @@ public class LandscapeGenerator {
         init();
     }
 
+    /**
+     * Initialize data structures
+     */
     public void init() {
         this.rasterGrid = new int[grid.getNbCells()];
         this.bufferGrid = new boolean[nbClasses][];
@@ -88,6 +95,14 @@ public class LandscapeGenerator {
         this.nbAvailableCells = grid.getNbCells();
     }
 
+    /**
+     * Generates a patch in the landscape
+     * @param classId the class of the patch to generate
+     * @param size the size of the patch to generate
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param noHole if true ensure that the patch contains no hole
+     * @return true if patch generation was successful, false otherwise
+     */
     public boolean generatePatch(int classId, int size, double terrainDependency, boolean noHole) {
         if (avalaibleCells[classId].size() < size) {
             return false;
@@ -130,6 +145,11 @@ public class LandscapeGenerator {
         return success;
     }
 
+    /**
+     * Filters potential cells that would create a hole
+     * @param classId class of the concerned patch
+     * @param neigh available cells
+     */
     public void filterHoles(int classId, List<Integer> neigh) {
         ISet toRemove = SetFactory.makeBipartiteSet(0);
         for (int i = 0; i < neigh.size(); i++) {
