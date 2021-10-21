@@ -130,6 +130,14 @@ public class CLI_LandscapeGenerator implements Runnable {
     )
     int nbLandscapes;
 
+    @CommandLine.Option(
+            names = {"-c", "--connectivity"},
+            description = "Connectivity definition in the regular square grid - '4' (4-connected)" +
+                    " or '8' (8-connected) (default: 4).",
+            defaultValue = "4"
+    )
+    int connectivity;
+
     @Override
     public void run() {
         try {
@@ -156,6 +164,9 @@ public class CLI_LandscapeGenerator implements Runnable {
             }
             if (!template.equals("")) {
                 initRasterMetadataFromTemplate(template);
+            }
+            if (connectivity != 4 && connectivity !=8) {
+                System.err.println(ANSIColors.ANSI_RED + "The Connectivity definition must be either 4 or 8" + ANSIColors.ANSI_RESET);
             }
             // Read input structure
             String[] structNames = new String[jsonPaths.length];
@@ -193,8 +204,9 @@ public class CLI_LandscapeGenerator implements Runnable {
                         bufferNeighborhood = Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance);
                         break;
                 }
+                INeighborhood c = connectivity == 4 ? Neighborhoods.FOUR_CONNECTED : Neighborhoods.HEIGHT_CONNECTED;
                 LandscapeGenerator landscapeGenerator = new LandscapeGenerator(
-                        s, Neighborhoods.FOUR_CONNECTED, bufferNeighborhood, terrain
+                        s, c, bufferNeighborhood, terrain
                 );
                 if (nbLandscapes == 1) { // One landscape case
                     boolean b = landscapeGenerator.generate(terrainDependency, maxTry, maxTryPatch);
