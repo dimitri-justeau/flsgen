@@ -20,7 +20,7 @@
  * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.flsgen.grid.neighborhood.regulare.square;
+package org.flsgen.grid.neighborhood.regular.square;
 
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;

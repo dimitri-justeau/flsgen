@@ -20,31 +20,27 @@
  * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.flsgen.grid.neighborhood.regulare.square;
+package org.flsgen.grid.neighborhood.regular.square;
 
 import org.flsgen.grid.neighborhood.INeighborhood;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 
 import java.util.stream.IntStream;
 
 /**
- * The height-connected neighborhood in a regular square org.flsgen.grid.
+ * The four-connected neighborhood in a partial regular square org.flsgen.grid.
  */
-public class HeightConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
+public class PartialFourConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
-    public int[] getNeighbors(T grid, int i) {
+    public int[] getNeighbors(T grid, int partialIdx) {
+        int idx = grid.getCompleteIndex(partialIdx);
         int nbCols = grid.getNbCols();
         int nbRows = grid.getNbRows();
-        int left = i % nbCols != 0 ? i - 1 : -1;
-        int right = (i + 1) % nbCols != 0 ? i + 1 : -1;
-        int top = i >= nbCols ? i - nbCols : -1;
-        int bottom = i < nbCols * (nbRows - 1) ? i + nbCols : -1;
-        int leftTop = (i % nbCols != 0) && i >= nbCols ? i - nbCols - 1 : -1;
-        int rightTop = ((i + 1) % nbCols != 0) && i >= nbCols ? i - nbCols + 1 : -1;
-        int leftBottom = (i < nbCols * (nbRows - 1)) && (i % nbCols != 0) ? i + nbCols - 1 : -1;
-        int rightBottom = (i < nbCols * (nbRows - 1)) && ((i + 1) % nbCols != 0) ? i + nbCols + 1 : -1;
-        return IntStream.of(left, right, top, bottom, leftTop, rightTop, leftBottom, rightBottom)
-                .filter(x -> x >=0).toArray();
+        int left = idx % nbCols != 0 ? grid.getPartialIndex(idx - 1) : -1;
+        int right = (idx + 1) % nbCols != 0 ? grid.getPartialIndex(idx + 1) : -1;
+        int top = idx >= nbCols ? grid.getPartialIndex(idx - nbCols) : -1;
+        int bottom = idx < nbCols * (nbRows - 1) ? grid.getPartialIndex(idx + nbCols) : -1;
+        return IntStream.of(left, right, top, bottom).filter(x -> x >= 0).toArray();
     }
 
 }

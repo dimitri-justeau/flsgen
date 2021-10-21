@@ -20,11 +20,11 @@
  * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.flsgen.grid.neighborhood.regulare.square;
+package org.flsgen.grid.neighborhood.regular.square;
 
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +32,10 @@ import java.util.List;
 /**
  * The 2-wide height-connected neighborhood in a regular square org.flsgen.grid.
  */
-public class TwoWideHeightConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
+public class PartialTwoWideHeightConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
     public int[] getNeighbors(T grid, int i) {
-        HeightConnected height = Neighborhoods.HEIGHT_CONNECTED;
+        PartialHeightConnected height = Neighborhoods.PARTIAL_HEIGHT_CONNECTED;
         int[] heightneigh = height.getNeighbors(grid, i);
         List<Integer> neighbors = new ArrayList<>();
         for (int neigh : heightneigh) {

@@ -20,45 +20,33 @@
  * along with flsgen.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.flsgen.grid.neighborhood.regulare.square;
+package org.flsgen.grid.neighborhood.regular.square;
 
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.chocosolver.util.objects.setDataStructures.ISet;
-import org.chocosolver.util.objects.setDataStructures.SetFactory;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
-public class KWideHeighConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
-
-    private int k;
-
-    public KWideHeighConnected(int k) {
-        this.k = k;
-    }
+public class PartialTwoWideFourConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
     public int[] getNeighbors(T grid, int i) {
-        HeightConnected height = Neighborhoods.HEIGHT_CONNECTED;
-        int[] heightNeigh = height.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
-        ISet next = SetFactory.makeBitSet(0);
-        for (int n : heightNeigh) {
-            neighbors.add(n);
-            next.add(n);
-        }
-        for (int j = 1; j < k; j++) {
-            int[] nextA = next.toArray();
-            next.clear();
-            for (int n : nextA) {
-                for (int neigh : height.getNeighbors(grid, n)) {
-                    neighbors.add(neigh);
-                    next.add(neigh);
+        PartialFourConnected four = Neighborhoods.PARTIAL_FOUR_CONNECTED;
+        int[] fourneigh = four.getNeighbors(grid, i);
+        List<Integer> neighbors = new ArrayList<>();
+        for (int neigh : fourneigh) {
+            neighbors.add(neigh);
+            for (int nneigh : four.getNeighbors(grid, neigh)) {
+                if (nneigh != i) {
+                    neighbors.add(nneigh);
                 }
             }
         }
-        return neighbors.toArray();
+        return neighbors.stream().mapToInt(x -> x).toArray();
     }
 
 }
