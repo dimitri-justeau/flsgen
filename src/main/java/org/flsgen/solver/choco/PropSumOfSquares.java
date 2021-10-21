@@ -174,7 +174,8 @@ public class PropSumOfSquares extends Propagator<IntVar> {
                 fails();
             }
             if (maxI > F || maxI > E) {
-                int lb, ub;
+                int lb;
+                int ub;
                 int i = 0;
                 maxI = 0;
                 // positive coefficients first
@@ -268,7 +269,9 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         }
         if(maxI > E) {
             maxI = 0;
-            int lb, ub, i = 0;
+            int lb;
+            int ub;
+            int i = 0;
             // positive coefficients first
             while (i < vars.length) {
                 long longI = Long.valueOf(I[i]);

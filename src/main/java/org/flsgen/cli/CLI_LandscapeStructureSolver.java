@@ -134,6 +134,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                         break;
                     default:
                         lSolver.setDefaultSearch();
+                        break;
                 }
                 if (nbSolutions == 1) {
                     // One solution case

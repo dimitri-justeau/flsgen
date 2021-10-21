@@ -87,7 +87,7 @@ public class UseCaseTest {
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
         ls.setDomOverWDegRefSearch();
-        LandscapeStructure s = ls.findSolution();
+        ls.findSolution();
     }
 
     @Test public void useCaseFromScratch() throws FlsgenException {
