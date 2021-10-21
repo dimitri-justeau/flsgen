@@ -23,7 +23,7 @@ jobs:
         distribution: 'adopt'
         cache: maven
     - name: Build with Maven
-      run: mvn test jacoco:report
+      run: mvn test cobertura:cobertura
     - name: Codecov
       uses: codecov/codecov-action@v2.1.0
       with:
