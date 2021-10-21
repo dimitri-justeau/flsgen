@@ -23,7 +23,6 @@
 package org.flsgen.grid.neighborhood;
 
 import org.flsgen.grid.neighborhood.regular.square.*;
-import org.flsgen.grid.neighborhood.regulare.square.*;
 
 /**
  * Utility class for accessing neighborhoods.
