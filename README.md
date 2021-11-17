@@ -2,7 +2,7 @@
 
 [![Java CI with Maven](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml/badge.svg)](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d736bcc515e043828e6a0f6569994865)](https://www.codacy.com/gh/dimitri-justeau/flsgen/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dimitri-justeau/flsgen&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/dimitri-justeau/flsgen/branch/master/graph/badge.svg?token=ETIZAARJB7)](https://codecov.io/gh/dimitri-justeau/flsgen)
 
-`flsgen` is a neutral landscape generator that allow users to set targets on landscape indices. It first relies on Choco-solver to identify landscape structure satisfying user targets, then uses a stochastic algorithm to produce landscape rasters.
+`flsgen` is a neutral landscape generator that allows users to set targets on landscape indices. It first relies on Choco-solver to identify landscape structure satisfying user targets, then uses a stochastic algorithm to produce landscape rasters.
 
 ## Download and installation
 
@@ -10,7 +10,7 @@ Java 8+ must be installed in your system to run flsgen. For the command-line int
 
 ### Command-line interface (CLI)
 
-The most straighforward way to use fslgen it the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
+The most straightforward way to use fslgen is the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
 
 ```bash
 java -jar flsgen-1.0-beta-SNAPSHOT.jar
@@ -35,7 +35,7 @@ To avoid typing `java -jar flsgen-1.0-beta-SNAPSHOT.jar` each time you need to u
 
 ### Java API
 
-To use the Java API, you can either download flsgen jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b) and add it to you classpath, or clone this Github repository and install flsgen as a local Maven dependency using the following command:
+To use the Java API, you can either download flsgen jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b) and add it to your classpath, or clone this Github repository and install flsgen as a local Maven dependency using the following command:
 
 ```bash
 mvn clean install
@@ -81,7 +81,7 @@ For example, if you want to generate a 200x200 fractal terrain with a roughness 
 flsgen terrain -H 200 -W 200 -R 0.4 terrain.tif
 ```
 
-You will get a fractal tif raster, e.g. :  
+You will get a fractal tif raster, e.g. :
 
 ![alt-text](doc/img/terrain_example.png "Terrain example")
 
@@ -148,7 +148,7 @@ The first step is to create a JSON file (e.g. `target.json`) describing these ta
 
 #### From the CLI
 
-Using the CLI, you can generate a non spatially-explicit landscape structure using the `flsgen structure` command:
+Using the CLI, you can generate a non-spatially-explicit landscape structure using the `flsgen structure` command:
 
 ```bash
 Usage: FLSGen structure [-hV] [-n=<nbSolutions>] [-s=<search>] <outputPrefix>
@@ -285,7 +285,7 @@ From the previous terrain raster and the previous structure JSON file, we can ge
 flsgen generate -l terrain.tif landscape struct_target.json
 ```
 
-This will generate the `landscape_struct_target.tif` raster file with default generation parameters. As the generation algorithm is randomized, you will get a different raster at each call, but always having the same patch sizes distribution.  Bellow are three example of generated landscape with the previous command.
+This will generate the `landscape_struct_target.tif` raster file with default generation parameters. As the generation algorithm is randomized, you will get a different raster at each call, but always with the same patch sizes distribution.  Below are three examples of generated landscapes with the previous command.
 
 ![alt-text](doc/img/landscape_example_1.png "Landscape example 1")   ![alt-text](doc/img/landscape_example_2.png "Landscape example 2")   ![alt-text](doc/img/landscape_example_3.png "Landscape example 3")
 
