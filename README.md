@@ -94,6 +94,8 @@ import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.Terrain;
 import org.opengis.referencing.FactoryException;
 
+import java.io.IOException;
+
 public class FractalTerrainTest {
 
     public static void main(String[] args) throws IOException, FactoryException {
@@ -184,9 +186,108 @@ If there exist a landscape structure satisfying these targets, the program will 
 
 #### From the Java API
 
+To achieve the same result with the Java API:
 
+```java
+import org.flsgen.solver.LandscapeStructureSolver;
+import org.flsgen.solver.LandscapeStructure;
+import com.github.cliftonlabs.json_simple.JsonException;
+import org.flsgen.exception.FlsgenException;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class StructureTest {
+
+    public static void main(String[] args) throws IOException, JsonException, FlsgenException { {
+        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader("target.json"));
+        ls.build();
+        LandscapeStructure struct = ls.findSolution();
+        FileWriter writer = new FileWriter("struct_target.json");
+        writer.write(struct.toJSON());
+        writer.close();
+    }
+}
+```
 
 ### Generating landscape rasters from landscape structures.
 
+Now, let's generate a landscape raster from the previously generated structure.
 
+#### From the CLI
+
+Using the CLI, we use the `flsgen generate` command to generate a landscape raster from a landscape structure:
+
+```bash
+Usage: FLSGen generate [-hV] [-c=<connectivity>] [-D=<minDistance>]
+                       [-e=<terrainOutput>] [-l=<terrainInput>] [-m=<maxTry>]
+                       [-n=<nbLandscapes>] [-p=<maxTryPatch>] [-r=<resolution>]
+                       [-R=<roughnessFactor>] [-s=<srs>] [-t=<template>]
+                       [-T=<terrainDependency>] [-x=<x>] [-y=<y>]
+                       <outputPrefix> [<jsonPaths>...]
+Generate landscapes from given structures. To produce more realistic landscape,
+the algorithm relies on a terrain either given as input or automatically
+generated as a fractal terrain.
+      <outputPrefix>     Output raster prefix path for generated landscape(s)
+      [<jsonPaths>...]   JSON input file describing landscape structure -- Use
+                           "-" to read from STDIN (only possible with one
+                           structure as input) -- Use multiple space-separated
+                           paths to generate landscapes with different
+                           structures.
+  -c, --connectivity=<connectivity>
+                         Connectivity definition in the regular square org.
+                           flsgen.grid - '4' (4-connected) or '8' (8-connected)
+                           (default: 4).
+  -D, --distance-between-patches=<minDistance>
+                         Minimum distance (in number of cells) between patches
+                           from a same class (default: 2).
+  -e, -et, --export-terrain=<terrainOutput>
+                         Set an output raster path to export the terrain used
+                           to generate the landscape
+  -h, --help             Show this help message and exit.
+  -l, -lt, --load-terrain=<terrainInput>
+                         Load the terrain used by the algorithm from a raster
+                           instead of generating it
+  -m, -mt, --max-try=<maxTry>
+                         Maximum number or trials to generate the whole
+                           landscape (default: 100).
+  -n, --nb-landscapes=<nbLandscapes>
+                         Number of landscapes to generate (default: 1).
+  -p, -mtp, --max-try-patch=<maxTryPatch>
+                         Maximum number of trials to generate a patch (default:
+                           100).
+  -r, --resolution=<resolution>
+                         Spatial resolution of the output raster (in CRS unit,
+                           default: 0.0001)
+  -R, --roughness=<roughnessFactor>
+                         Roughness parameter (also called H), between 0 and 1
+                           for fractal terrain generation. Lower values produce
+                           rougher terrain (default: 0.5)
+  -s, -srs, --spatial-reference-system=<srs>
+                         Spatial reference system of the output raster
+                           (default: EPSG:4326)
+  -t, -ot, --output-template=<template>
+                         Raster template to use for output raster metadata
+  -T, --terrain-dependency=<terrainDependency>
+                         Terrain dependency of the patch generation algorithm,
+                           between 0 and 1. 0 means no dependency to the
+                           terrain, and 1 mean that patch generation is
+                           entirely guided by the terrain (default: 0.5)
+  -V, --version          Print version information and exit.
+  -x=<x>                 Top left x coordinate of the output raster (default: 0)
+  -y=<y>                 Top left y coordinate of the output raster (default: 0)
+```
+
+From the previous terrain raster and the previous structure JSON file, we can generate a landscape raster file with the following command:
+
+```bash
+flsgen generate -l terrain.tif landscape struct_target.json
+```
+
+This will generate the `landscape_struct_target.tif` raster file with default generation parameters. As the generation algorithm is randomized, you will get a different raster at each call, but always having the same patch sizes distribution.  Bellow are three example of generated landscape with the previous command.
+
+![alt-text](doc/img/landscape_example_1.png "Landscape example 1")   ![alt-text](doc/img/landscape_example_2.png "Landscape example 2")   ![alt-text](doc/img/landscape_example_3.png "Landscape example 3")
+
+#### From the Java API
 
