@@ -2,8 +2,16 @@
 
 [![Java CI with Maven](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml/badge.svg)](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d736bcc515e043828e6a0f6569994865)](https://www.codacy.com/gh/dimitri-justeau/flsgen/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dimitri-justeau/flsgen&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/dimitri-justeau/flsgen/branch/master/graph/badge.svg?token=ETIZAARJB7)](https://codecov.io/gh/dimitri-justeau/flsgen)
 
+* [Download and installation](#down)
+* [Tutorial](#tuto)
+    * [Fractal terrain generation](#terrain)
+    * [Landscape structure generation](#structure)
+    * [Landscape raster generation](#generate)
+
+
 `flsgen` is a neutral landscape generator that allows users to set targets on landscape indices. It first relies on Choco-solver to identify landscape structure satisfying user targets, then uses a stochastic algorithm to produce landscape rasters.
 
+<a name="down"></a>
 ## Download and installation
 
 Java 8+ must be installed in your system to run flsgen. For the command-line interface, only a JRE is necessary, whereas the Java API needs a full JDK. Download and installation instructions for Java are available here: https://www.oracle.com/java/technologies/javase-downloads.html, or here: https://openjdk.java.net/install/ .
@@ -41,8 +49,10 @@ To use the Java API, you can either download flsgen jar file [here](https://gith
 mvn clean install
 ```
 
+<a name="tuto"></a>
 ## Tutorial
 
+<a name="terrain"></a>
 ### Generating a fractal terrain raster
 
 #### From the CLI
@@ -107,6 +117,7 @@ public class FractalTerrainTest {
 }
 ```
 
+<a name="structure"></a>
 ### Generating landscape structures from targets
 
 Say that we want to generate a landscape structure for a 200x200 landscape containing three landscape classes (plus a background class), with the following user targets:
@@ -211,6 +222,7 @@ public class StructureTest {
 }
 ```
 
+<a name="generate"></a>
 ### Generating landscape rasters from landscape structures.
 
 Now, let's generate a landscape raster from the previously generated structure.
