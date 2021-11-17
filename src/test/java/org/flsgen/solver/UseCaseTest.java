@@ -107,7 +107,6 @@ public class UseCaseTest {
             INeighborhood d = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
             LandscapeGenerator generator = new LandscapeGenerator(s, n, d, t);
             generator.generate(0.5, 10, 10);
-//            generator.exportRaster(0, 0, 1, "EPSG:3163", "/home/djusteau/Documents/testPolyomino/solutions2/MESH__" + m + ".tif");
         }
     }
 }
