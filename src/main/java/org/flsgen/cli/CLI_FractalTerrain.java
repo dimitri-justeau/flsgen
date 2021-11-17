@@ -34,7 +34,7 @@ import java.io.IOException;
 @CommandLine.Command(
         name = "terrain",
         mixinStandardHelpOptions = true,
-        description = "Generate a fractal terrain using the Diamond-Square algorithm"
+        description = "Generate a fractal terrain using the Diamond-Square algorithm."
 )
 public class CLI_FractalTerrain implements Runnable {
 

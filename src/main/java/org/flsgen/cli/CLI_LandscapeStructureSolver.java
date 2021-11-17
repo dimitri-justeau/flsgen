@@ -34,7 +34,7 @@ import static org.flsgen.cli.ANSIColors.*;
 @CommandLine.Command(
         name = "structure",
         mixinStandardHelpOptions = true,
-        description = "Generate a landscape structure satisfying a set of targets"
+        description = "Generate a landscape structure satisfying a set of targets."
 )
 public class CLI_LandscapeStructureSolver implements Runnable {
 
