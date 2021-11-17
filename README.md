@@ -291,3 +291,34 @@ This will generate the `landscape_struct_target.tif` raster file with default ge
 
 #### From the Java API
 
+To achieve the same with the Java API:
+
+```java
+import com.github.cliftonlabs.json_simple.JsonException;
+import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.neighborhood.INeighborhood;
+import org.flsgen.grid.neighborhood.Neighborhoods;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.flsgen.solver.LandscapeStructure;
+import org.flsgen.solver.LandscapeGenerator
+import org.flsgen.solver.Terrain;;
+import org.opengis.referencing.FactoryException;
+
+import java.io.FileReader;
+import java.io.IOException;
+
+public class GenerateTest {
+
+    public static void main(String[] args) throws IOException, JsonException, FlsgenException, FactoryException {
+        LandscapeStructure structure = LandscapeStructure.fromJSON(new FileReader("struct_target.json"));
+        RegularSquareGrid grid = new RegularSquareGrid(200, 200);
+        Terrain terrain = new Terrain(grid);
+        terrain.loadFromRaster("terrain.tif");
+        INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
+        INeighborhood distance = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
+        LandscapeGenerator generator = new LandscapeGenerator(structure, neighborhood, distance, terrain);
+        generator.generate(0.5, 10,10);
+        generator.exportRaster(0, 0, 0.001, "EPSG:4326", "landscape_struct_target.tif");
+    }
+}
+```
