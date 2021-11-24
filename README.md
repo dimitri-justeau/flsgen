@@ -1,6 +1,6 @@
 # `flsgen` A Fragmented Neutral Landscape Generator
 
-[![Java CI with Maven](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml/badge.svg)](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d736bcc515e043828e6a0f6569994865)](https://www.codacy.com/gh/dimitri-justeau/flsgen/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dimitri-justeau/flsgen&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/dimitri-justeau/flsgen/branch/master/graph/badge.svg?token=ETIZAARJB7)](https://codecov.io/gh/dimitri-justeau/flsgen)
+[![Java CI with Maven](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml/badge.svg)](https://github.com/dimitri-justeau/flsgen/actions/workflows/maven.yml) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d736bcc515e043828e6a0f6569994865)](https://www.codacy.com/gh/dimitri-justeau/flsgen/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dimitri-justeau/flsgen&amp;utm_campaign=Badge_Grade) [![codecov](https://codecov.io/gh/dimitri-justeau/flsgen/branch/master/graph/badge.svg?token=ETIZAARJB7)](https://codecov.io/gh/dimitri-justeau/flsgen) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5717637.svg)](https://doi.org/10.5281/zenodo.5717637)
 
 * [Download and installation](#down)
 * [Tutorial](#tuto)
