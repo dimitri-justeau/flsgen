@@ -22,6 +22,8 @@
 
 package org.flsgen.grid.neighborhood.regular.square;
 
+import org.chocosolver.util.objects.setDataStructures.ISet;
+import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
@@ -37,14 +39,14 @@ public class PartialTwoWideHeightConnected<T extends PartialRegularSquareGrid> i
     public int[] getNeighbors(T grid, int i) {
         PartialHeightConnected height = Neighborhoods.PARTIAL_HEIGHT_CONNECTED;
         int[] heightneigh = height.getNeighbors(grid, i);
-        List<Integer> neighbors = new ArrayList<>();
+        ISet neighbors = SetFactory.makeBitSet(0);
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : height.getNeighbors(grid, neigh)) {
                 neighbors.add(nneigh);
             }
         }
-        return neighbors.stream().mapToInt(x -> x).toArray();
+        return neighbors.toArray();
     }
 
 }

@@ -22,6 +22,8 @@
 
 package org.flsgen.grid.neighborhood.regular.square;
 
+import org.chocosolver.util.objects.setDataStructures.ISet;
+import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
@@ -37,14 +39,14 @@ public class TwoWideFourConnected<T extends RegularSquareGrid> implements INeigh
     public int[] getNeighbors(T grid, int i) {
         FourConnected four = Neighborhoods.FOUR_CONNECTED;
         int[] heightneigh = four.getNeighbors(grid, i);
-        List<Integer> neighbors = new ArrayList<>();
+        ISet neighbors = SetFactory.makeBitSet(0);
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : four.getNeighbors(grid, neigh)) {
                 neighbors.add(nneigh);
             }
         }
-        return neighbors.stream().mapToInt(x -> x).toArray();
+        return neighbors.toArray();
     }
 
 }
