@@ -22,11 +22,11 @@
 
 package org.flsgen.grid.neighborhood.regular.square;
 
+import org.chocosolver.util.objects.setDataStructures.ISet;
+import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.chocosolver.util.objects.setDataStructures.ISet;
-import org.chocosolver.util.objects.setDataStructures.SetFactory;
 
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.

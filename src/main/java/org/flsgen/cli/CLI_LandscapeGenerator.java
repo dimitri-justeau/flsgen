@@ -22,16 +22,16 @@
 
 package org.flsgen.cli;
 
+import org.apache.commons.io.FilenameUtils;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.apache.commons.io.FilenameUtils;
-import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.gce.geotiff.GeoTiffReader;
-import picocli.CommandLine;
 import org.flsgen.solver.LandscapeGenerator;
 import org.flsgen.solver.LandscapeStructure;
 import org.flsgen.solver.Terrain;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.gce.geotiff.GeoTiffReader;
+import picocli.CommandLine;
 
 import java.io.*;
 

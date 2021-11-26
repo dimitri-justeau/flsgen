@@ -22,11 +22,11 @@
 
 package org.flsgen.grid.neighborhood;
 
-import org.flsgen.grid.Grid;
 import org.chocosolver.solver.Model;
 import org.chocosolver.util.objects.graphs.GraphFactory;
 import org.chocosolver.util.objects.graphs.UndirectedGraph;
 import org.chocosolver.util.objects.setDataStructures.SetType;
+import org.flsgen.grid.Grid;
 
 /**
  * Interface specifying a neighborhood definition in a org.flsgen.grid.

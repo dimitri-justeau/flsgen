@@ -23,10 +23,10 @@
 package org.flsgen.cli;
 
 import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.flsgen.solver.Terrain;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.gce.geotiff.GeoTiffReader;
 import picocli.CommandLine;
-import org.flsgen.solver.Terrain;
 
 import java.io.File;
 import java.io.IOException;

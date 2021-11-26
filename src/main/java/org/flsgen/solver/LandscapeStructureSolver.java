@@ -26,13 +26,13 @@ import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
-import org.flsgen.exception.FlsgenException;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.search.limits.FailCounter;
 import org.chocosolver.solver.search.limits.TimeCounter;
 import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.variables.IntVar;
+import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
 
 import java.io.IOException;
 import java.io.Reader;

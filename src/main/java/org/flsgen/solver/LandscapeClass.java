@@ -22,11 +22,11 @@
 
 package org.flsgen.solver;
 
-import org.flsgen.exception.FlsgenException;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.variables.IntVar;
+import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.choco.PropSumOfSquares;
 
 import java.util.Arrays;

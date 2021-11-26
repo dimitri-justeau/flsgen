@@ -22,10 +22,10 @@
 
 package org.flsgen.solver;
 
-import org.flsgen.grid.neighborhood.INeighborhood;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
+import org.flsgen.grid.neighborhood.INeighborhood;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridCoverageFactory;
 import org.geotools.gce.geotiff.GeoTiffWriter;
@@ -35,11 +35,13 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import javax.media.jai.RasterFactory;
-import java.awt.image.*;
+import java.awt.image.DataBuffer;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;

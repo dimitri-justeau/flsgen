@@ -23,9 +23,9 @@
 package org.flsgen.cli;
 
 import org.apache.commons.io.FilenameUtils;
-import picocli.CommandLine;
-import org.flsgen.solver.LandscapeStructureSolver;
 import org.flsgen.solver.LandscapeStructure;
+import org.flsgen.solver.LandscapeStructureSolver;
+import picocli.CommandLine;
 
 import java.io.*;
 
