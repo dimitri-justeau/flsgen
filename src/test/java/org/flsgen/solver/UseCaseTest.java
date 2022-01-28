@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class UseCaseTest {
 
@@ -88,6 +89,17 @@ public class UseCaseTest {
         ls.build();
         ls.setDomOverWDegRefSearch();
         ls.findSolution();
+    }
+
+    @Test
+    public void useCase5() throws IOException, JsonException, FlsgenException {
+        String path = getClass().getClassLoader().getResource("targets_5.json").getPath();
+        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
+        ls.build();
+        ls.setRandomSearch();
+        LandscapeStructure struct = ls.findSolution();
+        System.out.println(struct.getNbPatches(0));
+        System.out.println(Arrays.toString(struct.getPatchSizes(0)));
     }
 
     @Test public void useCaseFromScratch() throws FlsgenException {

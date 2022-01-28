@@ -154,11 +154,17 @@ public class LandscapeStructure {
     }
 
     public int getSmallestPatchIndex(int classId) {
-        return getPatchSizes(classId)[0];
+        if (getNbPatches(classId) > 0) {
+            return getPatchSizes(classId)[0];
+        }
+        return -1;
     }
 
     public int getLargestPatchIndex(int classId) {
-        return getPatchSizes(classId)[getNbPatches(classId) - 1];
+        if (getNbPatches(classId) > 0) {
+            return getPatchSizes(classId)[getNbPatches(classId) - 1];
+        }
+        return -1;
     }
 
     public long getNetProduct(int classId) {

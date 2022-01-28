@@ -80,7 +80,7 @@ public class LandscapeClass {
         this.mesh_lb = -1;
         this.mesh_ub = -1;
         // Init patch size choco variables
-        this.patchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize);
+        this.patchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize, false);
         IntVar limit = model.intVar(0, maxNbPatches - minNbPatches);
         model.count(0, patchSizes, limit).post();
         this.nbPatches = model.intVar(minNbPatches, maxNbPatches);
