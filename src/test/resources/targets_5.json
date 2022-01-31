@@ -1,12 +1,12 @@
 {
-  "nbRows" : 300,
-  "nbCols" : 300,
+  "nbRows" : 600,
+  "nbCols" : 600,
   "classes" : [
     {
       "name": "Class A",
-      "AREA": [0, 90000],
-      "NP": [0, 100],
-      "PLAND": [10, 10]
+      "AREA": [0, 900000],
+      "NP": [1, 1],
+      "PLAND": [60, 60]
     }
   ]
 }

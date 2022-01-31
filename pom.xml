@@ -176,6 +176,11 @@
             <version>RELEASE</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.geniot</groupId>
+            <artifactId>indexedtreemap</artifactId>
+            <version>1.1</version>
+        </dependency>
     </dependencies>
 
 </project>

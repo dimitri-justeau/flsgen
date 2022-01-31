@@ -39,7 +39,7 @@ public class TwoWideFourConnected<T extends RegularSquareGrid> implements INeigh
     public int[] getNeighbors(T grid, int i) {
         FourConnected four = Neighborhoods.FOUR_CONNECTED;
         int[] heightneigh = four.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : four.getNeighbors(grid, neigh)) {

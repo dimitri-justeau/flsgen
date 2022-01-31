@@ -39,7 +39,7 @@ public class TwoWideHeightConnected<T extends RegularSquareGrid> implements INei
     public int[] getNeighbors(T grid, int i) {
         HeightConnected height = Neighborhoods.HEIGHT_CONNECTED;
         int[] heightneigh = height.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : height.getNeighbors(grid, neigh)) {

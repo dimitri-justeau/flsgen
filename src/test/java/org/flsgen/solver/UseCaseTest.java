@@ -98,8 +98,13 @@ public class UseCaseTest {
         ls.build();
         ls.setRandomSearch();
         LandscapeStructure struct = ls.findSolution();
-        System.out.println(struct.getNbPatches(0));
-        System.out.println(Arrays.toString(struct.getPatchSizes(0)));
+        RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
+        Terrain t = new Terrain(grid);
+        t.generateDiamondSquare(0.5);
+        INeighborhood n = Neighborhoods.FOUR_CONNECTED;
+        INeighborhood d = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
+        LandscapeGenerator generator = new LandscapeGenerator(struct, n, d, t);
+        generator.generate(0.5, 10, 1);
     }
 
     @Test public void useCaseFromScratch() throws FlsgenException {

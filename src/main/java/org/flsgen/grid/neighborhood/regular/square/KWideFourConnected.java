@@ -42,8 +42,8 @@ public class KWideFourConnected<T extends RegularSquareGrid> implements INeighbo
     public int[] getNeighbors(T grid, int i) {
         FourConnected four = Neighborhoods.FOUR_CONNECTED;
         int[] fourNeigh = four.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
-        ISet next = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
+        ISet next = SetFactory.makeRangeSet();
         for (int n : fourNeigh) {
             neighbors.add(n);
             next.add(n);

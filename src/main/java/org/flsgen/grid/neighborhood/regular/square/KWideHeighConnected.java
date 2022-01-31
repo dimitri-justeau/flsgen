@@ -42,8 +42,8 @@ public class KWideHeighConnected<T extends RegularSquareGrid> implements INeighb
     public int[] getNeighbors(T grid, int i) {
         HeightConnected height = Neighborhoods.HEIGHT_CONNECTED;
         int[] heightNeigh = height.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
-        ISet next = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
+        ISet next = SetFactory.makeRangeSet();
         for (int n : heightNeigh) {
             neighbors.add(n);
             next.add(n);

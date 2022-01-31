@@ -39,7 +39,7 @@ public class PartialTwoWideHeightConnected<T extends PartialRegularSquareGrid> i
     public int[] getNeighbors(T grid, int i) {
         PartialHeightConnected height = Neighborhoods.PARTIAL_HEIGHT_CONNECTED;
         int[] heightneigh = height.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
         for (int neigh : heightneigh) {
             neighbors.add(neigh);
             for (int nneigh : height.getNeighbors(grid, neigh)) {

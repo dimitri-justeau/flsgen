@@ -28,9 +28,6 @@ import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
@@ -39,7 +36,7 @@ public class PartialTwoWideFourConnected<T extends PartialRegularSquareGrid> imp
     public int[] getNeighbors(T grid, int i) {
         PartialFourConnected four = Neighborhoods.PARTIAL_FOUR_CONNECTED;
         int[] fourneigh = four.getNeighbors(grid, i);
-        ISet neighbors = SetFactory.makeBitSet(0);
+        ISet neighbors = SetFactory.makeRangeSet();
         for (int neigh : fourneigh) {
             neighbors.add(neigh);
             for (int nneigh : four.getNeighbors(grid, neigh)) {
