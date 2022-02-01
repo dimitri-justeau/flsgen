@@ -89,6 +89,7 @@ public class LandscapeStructure {
                 sizes.add(s);
             }
             cl.put(LandscapeStructureSolver.KEY_AREA, sizes);
+            cl.put(LandscapeStructureSolver.KEY_AREA_MN, getMeanPatchArea(i));
             cl.put(LandscapeStructureSolver.KEY_NPRO, npro[i]);
             cl.put(LandscapeStructureSolver.KEY_MESH, getMesh(i));
             cl.put(LandscapeStructureSolver.KEY_SPLI, getSplittingIndex(i));
@@ -139,6 +140,10 @@ public class LandscapeStructure {
 
     public int[] getPatchSizes(int classId) {
         return patchSizes[classId];
+    }
+
+    public double getMeanPatchArea(int classId) {
+        return (1.0 * totalSize[classId]) / (1.0 * nbPatches[classId]);
     }
 
     public int getTotalSize(int classId) {

@@ -24,12 +24,15 @@ package org.flsgen.solver;
 
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.constraints.Constraint;
+import org.chocosolver.solver.constraints.nary.alldifferent.conditions.Condition;
 import org.chocosolver.solver.variables.IntVar;
 import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.choco.PropSumOfSquares;
 
 import java.util.Arrays;
+
+import static org.flsgen.cli.ANSIColors.*;
 
 /**
  * Class representing a landscape class that must be present in the generated landscape
@@ -105,11 +108,35 @@ public class LandscapeClass {
 
     ///--- USER TARGETS ---///
 
+    // AREA_MN - Mean patch area
+    /**
+     * Set a mean patch area (AREA_MN) target
+     * @param minMeanPatchArea
+     * @param maxMeanPatchArea
+     * @throws FlsgenException
+     */
+    public void setMeanPatchArea(int minMeanPatchArea, int maxMeanPatchArea) throws FlsgenException {
+        if (maxMeanPatchArea < minMeanPatchArea) {
+            throw new FlsgenException("Max mean patch area must be greater than or equal to min mean patch area");
+        }
+        if (minMeanPatchArea == maxMeanPatchArea) {
+            System.err.println(ANSI_RED + "Warning: In class " + name +
+                    ", AREA_MN is set with a lower bound = upper bound." +
+                    " Note that the solver can only enforce integer division," +
+                    " thus the result can deviate slightly (< 1)." + ANSI_RESET);
+        }
+        int lb = minMeanPatchArea;
+        int ub = maxMeanPatchArea > minMeanPatchArea ? maxMeanPatchArea - 1 : maxMeanPatchArea;
+
+        model.div(sum, nbPatches, model.intVar(lb, ub)).post();
+    }
+
      // CA - Total class area
     /**
      * Set a total class area (CA) target
      * @param minClassArea
      * @param maxClassArea
+     * @throws FlsgenException
      */
     public void setClassArea(int minClassArea, int maxClassArea) throws FlsgenException {
         if (maxClassArea < minClassArea) {
@@ -124,6 +151,7 @@ public class LandscapeClass {
      * Set a proportion of landscape (PLAND) target
      * @param minProportion
      * @param maxProportion
+     * @throws FlsgenException
      */
     public void setLandscapeProportion(double minProportion, double maxProportion) throws FlsgenException {
         if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
@@ -142,6 +170,7 @@ public class LandscapeClass {
      * Set a patch density (PD) target
      * @param minDensity
      * @param maxDensity
+     * @throws FlsgenException
      */
     public void setPatchDensity(double minDensity, double maxDensity) throws FlsgenException {
         if (maxDensity < minDensity) {
@@ -158,6 +187,7 @@ public class LandscapeClass {
      * Set a smallest patch index (SPI) target
      * @param minSize
      * @param maxSize
+     * @throws FlsgenException
      */
     public void setSmallestPatchSize(int minSize, int maxSize) throws FlsgenException {
         if (maxSize < minSize) {
@@ -171,6 +201,7 @@ public class LandscapeClass {
      * Set a largest patch index (LPI) target
      * @param minSize
      * @param maxSize
+     * @throws FlsgenException
      */
     public void setLargestPatchSize(int minSize, int maxSize) throws FlsgenException {
         if (maxSize < minSize) {
@@ -185,6 +216,7 @@ public class LandscapeClass {
      * Set an effective mesh size (MESH) target.
      * @param mesh_lb
      * @param mesh_ub
+     * @throws FlsgenException
      */
     public void setMesh(double mesh_lb, double mesh_ub) throws FlsgenException {
         if (mesh_ub < mesh_lb) {
@@ -202,6 +234,7 @@ public class LandscapeClass {
      * Set a net product (NPRO) target
      * @param minNetProduct
      * @param maxNetProduct
+     * @throws FlsgenException
      */
     public void setNetProduct(long minNetProduct, long maxNetProduct) throws FlsgenException {
         if (maxNetProduct < minNetProduct) {
@@ -220,6 +253,7 @@ public class LandscapeClass {
      * Set a splitting index (SPLI) target
      * @param minSplittingIndex
      * @param maxSplittingIndex
+     * @throws FlsgenException
      */
     public void setSplittingIndex(double minSplittingIndex, double maxSplittingIndex) throws FlsgenException {
         if (maxSplittingIndex < minSplittingIndex) {
@@ -235,6 +269,7 @@ public class LandscapeClass {
      * Set a splitting density (SDEN) target
      * @param minSplittingDensity
      * @param maxSplittingDensity
+     * @throws FlsgenException
      */
     public void setSplittingDensity(double minSplittingDensity, double maxSplittingDensity) throws FlsgenException {
         if (maxSplittingDensity < minSplittingDensity) {
@@ -250,6 +285,7 @@ public class LandscapeClass {
      * Set a degree of coherence (COHE) index
      * @param minCoherence
      * @param maxCoherence
+     * @throws FlsgenException
      */
     public void setDegreeOfCoherence(double minCoherence, double maxCoherence) throws FlsgenException {
         if (minCoherence < 0 || minCoherence > 1 || maxCoherence < 0 || maxCoherence > 1) {
@@ -268,6 +304,7 @@ public class LandscapeClass {
      * Set a degree of division (DIVI) target
      * @param minDivision
      * @param maxDivision
+     * @throws FlsgenException
      */
     public void setDegreeOfDivision(double minDivision, double maxDivision) throws FlsgenException {
         if (minDivision < 0 || minDivision > 1 || maxDivision < 0 || maxDivision > 1) {
@@ -283,7 +320,8 @@ public class LandscapeClass {
      * Post a constraint ensuring that all patch will have different areas
      */
     public void setAllPatchesDifferentSize() {
-        model.allDifferentExcept0(patchSizes).post();
+        model.allDifferentUnderCondition(patchSizes, Condition.EXCEPT_0, true, "BC").post();
+//        model.allDifferentExcept0(patchSizes).post();
     }
 
     /**
@@ -304,6 +342,16 @@ public class LandscapeClass {
                 .mapToInt(v -> v.isInstantiated() ? v.getValue() : -1)
                 .filter(i -> i > 0)
                 .toArray();
+    }
+
+    /**
+     * @return The mean patch area
+     */
+    public double getMeanPatchArea() {
+        if (sum.isInstantiated()) {
+            return (1.0 * sum.getValue()) / (1.0 * nbPatches.getValue());
+        }
+        return -1;
     }
 
     /**

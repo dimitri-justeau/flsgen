@@ -96,15 +96,10 @@ public class UseCaseTest {
         String path = getClass().getClassLoader().getResource("targets_5.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
-        ls.setRandomSearch();
         LandscapeStructure struct = ls.findSolution();
-        RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
-        Terrain t = new Terrain(grid);
-        t.generateDiamondSquare(0.5);
-        INeighborhood n = Neighborhoods.FOUR_CONNECTED;
-        INeighborhood d = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
-        LandscapeGenerator generator = new LandscapeGenerator(struct, n, d, t);
-        generator.generate(0.5, 10, 1);
+        Assert.assertTrue(struct != null);
+        Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
+        Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
     }
 
     @Test public void useCaseFromScratch() throws FlsgenException {
@@ -123,7 +118,7 @@ public class UseCaseTest {
             INeighborhood n = Neighborhoods.FOUR_CONNECTED;
             INeighborhood d = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
             LandscapeGenerator generator = new LandscapeGenerator(s, n, d, t);
-            generator.generate(0.5, 10, 10);
+            generator.generate(0.5, 40, 40);
         }
     }
 }

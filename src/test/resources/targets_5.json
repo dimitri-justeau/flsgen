@@ -1,12 +1,26 @@
 {
-  "nbRows" : 600,
-  "nbCols" : 600,
+  "nbRows" : 500,
+  "nbCols" : 500,
   "classes" : [
     {
       "name": "Class A",
-      "AREA": [0, 900000],
-      "NP": [1, 1],
-      "PLAND": [60, 60]
+      "AREA": [0, 20000],
+      "AREA_MN": [1200, 1300],
+      "NP": [1, 20],
+      "PLAND": [10, 20],
+      "patchesAllDifferent": true
+    },
+    {
+      "name": "Class B",
+      "AREA": [0, 20000],
+      "NP": [1, 20],
+      "PLAND": [10, 20]
+    },
+    {
+      "name": "Class C",
+      "AREA": [0, 20000],
+      "NP": [1, 20],
+      "PLAND": [20, 30]
     }
   ]
 }

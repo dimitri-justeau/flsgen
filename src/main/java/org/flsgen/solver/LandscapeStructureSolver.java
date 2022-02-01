@@ -46,6 +46,7 @@ import java.util.List;
 public class LandscapeStructureSolver {
 
     public static final String KEY_AREA = "AREA";
+    public static final String KEY_AREA_MN = "AREA_MN";
     public static final String KEY_CA = "CA";
     public static final String KEY_PLAND = "PLAND";
     public static final String KEY_NP = "NP";
@@ -232,6 +233,11 @@ public class LandscapeStructureSolver {
             // Construct the landscape class
             LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, nbPatches[0], nbPatches[1], patchSize[0], patchSize[1]);
             // Get landscape class constraints
+            // AREA_MN
+            int[] area_mn = getIntInterval(cljson, KEY_AREA_MN, false, name);
+            if (area_mn != null) {
+                landscapeClass.setMeanPatchArea(area_mn[0], area_mn[1]);
+            }
             // CA
             int[] ca = getIntInterval(cljson, KEY_CA, false, name);
             if (ca != null) {
