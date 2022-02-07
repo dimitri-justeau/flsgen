@@ -61,6 +61,7 @@ public class LandscapeClass {
     protected IntVar[] patchSizes;
 //    protected IntVar[] squaredPatchSizes;
     protected IntVar sum;
+    protected IntVar meanPatchArea;
 //    private IntVar sumOfSquares;
     protected IntVar nbPatches;
 
@@ -115,9 +116,12 @@ public class LandscapeClass {
      * @param maxMeanPatchArea
      * @throws FlsgenException
      */
-    public void setMeanPatchArea(int minMeanPatchArea, int maxMeanPatchArea) throws FlsgenException {
+    public void setMeanPatchArea(double minMeanPatchArea, double maxMeanPatchArea) throws FlsgenException {
         if (maxMeanPatchArea < minMeanPatchArea) {
             throw new FlsgenException("Max mean patch area must be greater than or equal to min mean patch area");
+        }
+        if (minMeanPatchArea <= 0) {
+            throw new FlsgenException("Mean patch area target must be greater than 0");
         }
         if (minMeanPatchArea == maxMeanPatchArea) {
             System.err.println(ANSI_RED + "Warning: In class " + name +
@@ -125,10 +129,24 @@ public class LandscapeClass {
                     " Note that the solver can only enforce integer division," +
                     " thus the result can deviate slightly (< 1)." + ANSI_RESET);
         }
-        int lb = minMeanPatchArea;
-        int ub = maxMeanPatchArea > minMeanPatchArea ? maxMeanPatchArea - 1 : maxMeanPatchArea;
 
-        model.div(sum, nbPatches, model.intVar(lb, ub)).post();
+        // Version real
+//        RealVar meanPatchArea = model.realVar(minMeanPatchArea, maxMeanPatchArea, 0.001);
+//        RealVar meanTimesNP = model.realVar(
+//                minMeanPatchArea * nbPatches.getLB(),
+//                maxMeanPatchArea * nbPatches.getUB(),
+//                0.001
+//        );
+//        Constraint c = new Constraint("timesMixed", new PropTimesNaiveMixed(nbPatches, meanPatchArea, meanTimesNP));
+//        model.post(c);
+//        model.scalar(new Variable[] {sum, meanTimesNP}, new double[] {1, -1}, "=", 0.0).post();
+        // Version int
+        int lb = (int) minMeanPatchArea;
+        int ub = (int) (maxMeanPatchArea > minMeanPatchArea ? maxMeanPatchArea - 1 : maxMeanPatchArea);
+        if (meanPatchArea == null) {
+            meanPatchArea = model.intVar(lb, ub);
+        }
+        model.div(sum, nbPatches, meanPatchArea).post();
     }
 
      // CA - Total class area

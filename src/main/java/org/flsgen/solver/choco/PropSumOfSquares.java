@@ -50,11 +50,13 @@ public class PropSumOfSquares extends Propagator<IntVar> {
      * Variability of each variable (ie domain amplitude)
      */
     protected final int[] I;
+    protected final long[] I2;
 
     /**
      * Stores the maximal variability
      */
     protected int maxI;
+    protected long maxI2;
 
     /**
      * SUm of lower bounds
@@ -88,7 +90,9 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         super(variables, priority, reactOnFineEvent);
         l = variables.length;
         I = new int[l];
+        I2 = new long[l];
         maxI = 0;
+        maxI2 = 0;
         b = 0;
         this.LB = LB;
         this.UB = UB;
@@ -125,6 +129,7 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         int lb;
         int ub;
         maxI = 0;
+        maxI2 = 0;
         for (int i = 0; i < vars.length; i++) {
             lb = vars[i].getLB();
             ub = vars[i].getUB();
@@ -133,8 +138,12 @@ public class PropSumOfSquares extends Propagator<IntVar> {
             sumLB += longLB * longLB;
             sumUB += longUB * longUB;
             I[i] = (ub - lb);
+            I2[i] = longUB * longUB - longLB * longLB;
             if(maxI < I[i]) {
                 maxI = I[i];
+            }
+            if (maxI2 < I2[i]) {
+                maxI2 = I2[i];
             }
         }
     }
@@ -173,39 +182,48 @@ public class PropSumOfSquares extends Propagator<IntVar> {
             if (model.getSolver().isLearnOff() && (F < 0 || E < 0)) {
                 fails();
             }
-            if (maxI > F || maxI > E) {
+            if (maxI2 > F || maxI2 > E) {
                 int lb;
                 int ub;
                 int i = 0;
                 maxI = 0;
+                maxI2 = 0;
                 // positive coefficients first
                 while (i < vars.length) {
-                    long longI = Long.valueOf(I[i]);
-                    if ((longI * longI) - F > 0) {
+                    if (I2[i] - F > 0) {
                         lb = vars[i].getLB();
                         ub = lb + I[i];
                         if (vars[i].updateUpperBound((int) (Math.sqrt(F) + lb), this)) {
                             int nub = vars[i].getUB();
                             long longNub = Long.valueOf(nub);
                             long longUb = Long.valueOf(ub);
+                            long longLb = Long.valueOf(lb);
                             E += (longNub * longNub) - (longUb * longUb);
                             I[i] = nub - lb;
+                            I2[i] = longNub * longNub - longLb * longLb;
                             anychange = true;
                         }
                     }
-                    if ((longI * longI) - E > 0) {
+                    if (I2[i] - E > 0) {
                         ub = vars[i].getUB();
                         lb = ub - I[i];
                         if (vars[i].updateLowerBound((int) (ub - Math.sqrt(E)), this)) {
                             int nlb = vars[i].getLB();
                             long longNlb = Long.valueOf(nlb);
                             long longLb = Long.valueOf(lb);
+                            long longUb = Long.valueOf(ub);
                             F -= (longNlb * longNlb) - (longLb * longLb);
                             I[i] = ub - nlb;
+                            I2[i] = longUb * longUb - longNlb * longNlb;
                             anychange = true;
                         }
                     }
-                    if(maxI < I[i])maxI = I[i];
+                    if (maxI < I[i]) {
+                        maxI = I[i];
+                    }
+                    if (maxI2 < I2[i]) {
+                        maxI2 = I2[i];
+                    }
                     i++;
                 }
             }
@@ -228,26 +246,33 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         if (model.getSolver().isLearnOff() && F < 0) {
             fails();
         }
-        if (maxI > F) {
+        if (maxI2 > F) {
             maxI = 0;
+            maxI2 = 0;
             int lb;
             int ub;
             int i = 0;
             // positive coefficients first
             while (i < vars.length) {
-                long longI = Long.valueOf(I[i]);
-                if ((longI * longI) - F > 0) {
+                if (I2[i] - F > 0) {
                     lb = vars[i].getLB();
                     ub = lb + I[i];
                     if (vars[i].updateUpperBound((int) (Math.sqrt(F) + lb), this)) {
                         int nub = vars[i].getUB();
                         long longNub = Long.valueOf(nub);
                         long longUB = Long.valueOf(ub);
+                        long longLB = Long.valueOf(lb);
                         E += (longNub * longNub) - (longUB * longUB);
                         I[i] = nub - lb;
+                        I2[i] = longNub * longNub - longLB * longLB;
                     }
                 }
-                if(maxI < I[i])maxI = I[i];
+                if(maxI < I[i]) {
+                    maxI = I[i];
+                }
+                if (maxI2 < I2[i]) {
+                    maxI2 = I2[i];
+                }
                 i++;
             }
         }
@@ -267,26 +292,33 @@ public class PropSumOfSquares extends Propagator<IntVar> {
         if (model.getSolver().isLearnOff() && E < 0) {
             fails();
         }
-        if(maxI > E) {
+        if(maxI2 > E) {
             maxI = 0;
+            maxI2 = 0;
             int lb;
             int ub;
             int i = 0;
             // positive coefficients first
             while (i < vars.length) {
-                long longI = Long.valueOf(I[i]);
-                if ((longI * longI) - E > 0) {
+                if (I2[i] - E > 0) {
                     ub = vars[i].getUB();
                     lb = ub - I[i];
                     if (vars[i].updateLowerBound((int) (ub - Math.sqrt(E)), this)) {
                         int nlb = vars[i].getLB();
                         long longNlb = Long.valueOf(nlb);
                         long longLB = Long.valueOf(lb);
+                        long longUB = Long.valueOf(lb);
                         F -= (longNlb * longNlb) - (longLB * longLB);
                         I[i] = ub - nlb;
+                        I2[i] = longUB * longUB - longNlb * longNlb;
                     }
                 }
-                if(maxI < I[i])maxI = I[i];
+                if (maxI < I[i]) {
+                    maxI = I[i];
+                }
+                if (maxI2 < I2[i]) {
+                    maxI2 = I2[i];
+                }
                 i++;
             }
         }

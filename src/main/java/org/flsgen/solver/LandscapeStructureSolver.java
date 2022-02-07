@@ -234,7 +234,7 @@ public class LandscapeStructureSolver {
             LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, nbPatches[0], nbPatches[1], patchSize[0], patchSize[1]);
             // Get landscape class constraints
             // AREA_MN
-            int[] area_mn = getIntInterval(cljson, KEY_AREA_MN, false, name);
+            double[] area_mn = getDoubleInterval(cljson, KEY_AREA_MN, false, name);
             if (area_mn != null) {
                 landscapeClass.setMeanPatchArea(area_mn[0], area_mn[1]);
             }

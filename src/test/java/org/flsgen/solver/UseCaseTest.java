@@ -96,10 +96,13 @@ public class UseCaseTest {
         String path = getClass().getClassLoader().getResource("targets_5.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
-        LandscapeStructure struct = ls.findSolution();
-        Assert.assertTrue(struct != null);
-        Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
-        Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
+        ls.getModel().getSolver().showStatistics();
+        for (int i = 0; i < 100; i++) {
+            LandscapeStructure struct = ls.findSolution(60);
+            Assert.assertTrue(struct != null);
+            Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
+            Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
+        }
     }
 
     @Test public void useCaseFromScratch() throws FlsgenException {
