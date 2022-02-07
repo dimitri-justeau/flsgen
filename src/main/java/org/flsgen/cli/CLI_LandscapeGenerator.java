@@ -97,6 +97,13 @@ public class CLI_LandscapeGenerator implements Runnable {
     int minDistance;
 
     @CommandLine.Option(
+            names = {"-M", "--max-min-dist"},
+            description = "If set, the minimum distance between patches is variable between `minDistance` and `maxMinDistance`.",
+            defaultValue = "-1"
+    )
+    int maxMinDistance;
+
+    @CommandLine.Option(
             names = {"-x"},
             description = "Top left x coordinate of the output raster (default: 0)",
             defaultValue = "0"
@@ -215,16 +222,22 @@ public class CLI_LandscapeGenerator implements Runnable {
                     terrain.loadFromRaster(terrainInput);
                 }
                 INeighborhood bufferNeighborhood;
-                switch (minDistance) {
-                    case 1:
-                        bufferNeighborhood = connectivity == 4 ? Neighborhoods.FOUR_CONNECTED : Neighborhoods.HEIGHT_CONNECTED;
-                        break;
-                    case 2:
-                        bufferNeighborhood = connectivity == 4 ? Neighborhoods.TWO_WIDE_FOUR_CONNECTED : Neighborhoods.TWO_WIDE_HEIGHT_CONNECTED;
-                        break;
-                    default:
-                        bufferNeighborhood = connectivity == 4 ? Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance) : Neighborhoods.K_WIDE_HEIGHT_CONNECTED(minDistance);
-                        break;
+                if (maxMinDistance > 1) {
+                    bufferNeighborhood = connectivity == 4 ?
+                            Neighborhoods.VARIABLE_WIDTH_FOUR_CONNECTED(minDistance, maxMinDistance) :
+                            Neighborhoods.VARIABLE_WIDTH_HEIGHT_CONNECTED(minDistance, maxMinDistance);
+                } else {
+                    switch (minDistance) {
+                        case 1:
+                            bufferNeighborhood = connectivity == 4 ? Neighborhoods.FOUR_CONNECTED : Neighborhoods.HEIGHT_CONNECTED;
+                            break;
+                        case 2:
+                            bufferNeighborhood = connectivity == 4 ? Neighborhoods.TWO_WIDE_FOUR_CONNECTED : Neighborhoods.TWO_WIDE_HEIGHT_CONNECTED;
+                            break;
+                        default:
+                            bufferNeighborhood = connectivity == 4 ? Neighborhoods.K_WIDE_FOUR_CONNECTED(minDistance) : Neighborhoods.K_WIDE_HEIGHT_CONNECTED(minDistance);
+                            break;
+                    }
                 }
                 INeighborhood c = connectivity == 4 ? Neighborhoods.FOUR_CONNECTED : Neighborhoods.HEIGHT_CONNECTED;
                 LandscapeGenerator landscapeGenerator = new LandscapeGenerator(

@@ -22,6 +22,7 @@
 
 package org.flsgen.grid.neighborhood;
 
+import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.neighborhood.regular.square.*;
 
 /**
@@ -42,7 +43,15 @@ public class Neighborhoods {
         return new KWideFourConnected(k);
     }
 
+    public final static VariableWidthFourConnected VARIABLE_WIDTH_FOUR_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
+        return new VariableWidthFourConnected(minWidth, maxWidth);
+    }
+
     public final static KWideHeighConnected K_WIDE_HEIGHT_CONNECTED(int k) {
         return new KWideHeighConnected(k);
+    }
+
+    public final static VariableWidthHeightConnected VARIABLE_WIDTH_HEIGHT_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
+        return new VariableWidthHeightConnected(minWidth, maxWidth);
     }
 }

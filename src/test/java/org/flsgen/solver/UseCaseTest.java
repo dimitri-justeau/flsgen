@@ -140,4 +140,24 @@ public class UseCaseTest {
             generator.generate(0.5, 40, 40);
         }
     }
+
+    @Test public void useCaseFromScratchVariableBuffer() throws FlsgenException {
+        RegularSquareGrid grid = new RegularSquareGrid(200, 200);
+        double[] mesh = new double[] {1000, 2000, 3000, 4000, 5000};
+        for (double m : mesh) {
+            LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
+            LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100);
+            c.setMesh(0.999 * m, 1.001 * m);
+            ls.build();
+            LandscapeStructure s = ls.findSolution();
+            System.out.println("MESH = " + s.getMesh(0));
+            System.out.println("PLAND = " + s.getLandscapeProportion(0));
+            Terrain t = new Terrain(grid);
+            t.generateDiamondSquare(0.5);
+            INeighborhood n = Neighborhoods.FOUR_CONNECTED;
+            INeighborhood d = Neighborhoods.VARIABLE_WIDTH_FOUR_CONNECTED(1, 10);
+            LandscapeGenerator generator = new LandscapeGenerator(s, n, d, t);
+            generator.generate(0.5, 40, 40);
+        }
+    }
 }
