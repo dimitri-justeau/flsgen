@@ -45,6 +45,9 @@ import java.util.List;
  */
 public class LandscapeStructureSolver {
 
+    // Landscape level
+    public static final String KEY_NON_FOCAL_PLAND = "NON_FOCAL_PLAND";
+    // Class level
     public static final String KEY_AREA = "AREA";
     public static final String KEY_AREA_MN = "AREA_MN";
     public static final String KEY_CA = "CA";
@@ -100,14 +103,34 @@ public class LandscapeStructureSolver {
     public void build() {
         this.totalSum = getModel().intVar(0, grid.getNbCells());
         IntVar[] sums = new IntVar[landscapeClasses.size()];
+        IntVar landscapeSize = getModel().intVar(nbCells);
         for (int i = 0; i < landscapeClasses.size(); i++) {
             sums[i] = landscapeClasses.get(i).sum;
-            getModel().arithm(sums[i], "<", getModel().intVar(nbCells), "-", landscapeClasses.get(i).nbPatches).post();
+            getModel().arithm(sums[i], "<", landscapeSize, "-", landscapeClasses.get(i).nbPatches).post();
         }
         getModel().sum(sums, "=", totalSum).post();
         getModel().arithm(totalSum, "<=", nbCells).post();
         this.decisionVariables = getModel().retrieveIntVars(true);
         this.isBuilt = true;
+    }
+
+    public int getLandscapeSize() {
+        return grid.getNbCells();
+    }
+
+    // Landscape-leve targets - must be posted after all class have been defined and a call to build()
+
+    public void setNonFocalLandscapeProportion(double minProportion, double maxProportion) throws FlsgenException {
+        if (minProportion < 0 || minProportion > 100 || maxProportion < 0 || maxProportion > 100) {
+            throw new FlsgenException("Min and max class proportion must be between 0 and 100");
+        }
+        if (maxProportion < minProportion) {
+            throw new FlsgenException("Max proportion must be greater than or equal to min proportion");
+        }
+        int min = (int) (getLandscapeSize() * minProportion / 100);
+        int max = (int) (getLandscapeSize() * maxProportion / 100);
+        getModel().arithm(totalSum, "<=", getLandscapeSize() - min).post();
+        getModel().arithm(totalSum, ">=", getLandscapeSize() - max).post();
     }
 
     public void setRandomSearch() {
@@ -300,6 +323,17 @@ public class LandscapeStructureSolver {
                     landscapeClass.setAllPatchesDifferentSize();
                 }
             }
+        }
+        lStructSolver.build();
+
+        // -----------------------
+        // Landscape-level indices
+        // -----------------------
+
+        // Non focal PLAND
+        double[] pland = getDoubleInterval(targets, KEY_NON_FOCAL_PLAND, false, "landscape");
+        if (pland != null) {
+            lStructSolver.setNonFocalLandscapeProportion(pland[0], pland[1]);
         }
         return lStructSolver;
     }

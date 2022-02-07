@@ -28,6 +28,7 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 
 import java.io.Reader;
+import java.util.Arrays;
 
 /**
  * Class representing a landscape structure instantiation - for storing and retrieving solutions.
@@ -78,6 +79,7 @@ public class LandscapeStructure {
         JsonObject json = new JsonObject();
         json.put("nbRows", getNbRows());
         json.put("nbCols", getNbCols());
+        json.put(LandscapeStructureSolver.KEY_NON_FOCAL_PLAND, getNonFocalLandscapeProportion());
         JsonArray classes = new JsonArray();
         for (int i = 0; i < names.length; i++) {
             JsonObject cl = new JsonObject();
@@ -132,6 +134,10 @@ public class LandscapeStructure {
 
     public int getLandscapeSize() {
         return getNbRows() * getNbCols();
+    }
+
+    public double getNonFocalLandscapeProportion() {
+        return 100 * (1.0 * (getLandscapeSize() - Arrays.stream(totalSize).sum()) / (1.0 * getLandscapeSize()));
     }
 
     public int getNbPatches(int classId) {

@@ -1,6 +1,7 @@
 {
   "nbRows" : 500,
   "nbCols" : 500,
+  "NON_FOCAL_PLAND": [10, 50],
   "classes" : [
     {
       "name": "Class A",

@@ -96,12 +96,28 @@ public class UseCaseTest {
         String path = getClass().getClassLoader().getResource("targets_5.json").getPath();
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
-        ls.getModel().getSolver().showStatistics();
         for (int i = 0; i < 100; i++) {
-            LandscapeStructure struct = ls.findSolution(60);
+            LandscapeStructure struct = ls.findSolution(2);
             Assert.assertTrue(struct != null);
             Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
             Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
+        }
+    }
+
+    @Test
+    public void useCaseNonFocalPland() throws FlsgenException {
+        RegularSquareGrid grid = new RegularSquareGrid(200, 200);
+        LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
+        ls.landscapeClass("Class 1", 1, 10, 0, 10000);
+        ls.landscapeClass("Class 2", 1, 10, 0, 10000);
+        ls.landscapeClass("Class 3", 1, 10, 0, 10000);
+        ls.build();
+        ls.setNonFocalLandscapeProportion(20, 25);
+        for (int i = 0; i < 100; i++) {
+            LandscapeStructure struct = ls.findSolution(2);
+            Assert.assertTrue(struct != null);
+            Assert.assertTrue(struct.getNonFocalLandscapeProportion() >= 20);
+            Assert.assertTrue(struct.getNonFocalLandscapeProportion() <= 25);
         }
     }
 
