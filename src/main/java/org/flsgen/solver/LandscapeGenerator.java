@@ -105,6 +105,14 @@ public class LandscapeGenerator {
         return nbTry;
     }
 
+    public RegularSquareGrid getGrid() {
+        return grid;
+    }
+
+    public int[] getRasterGrid() {
+        return rasterGrid;
+    }
+
     /**
      * Initialize data structures
      */
@@ -164,7 +172,9 @@ public class LandscapeGenerator {
         }
         if (success) { // Patch generation was successful, construct buffer.
             for (int i : cells) {
-                avalaibleCells[classId].remove(i);
+                for (int k = 0; k < avalaibleCells.length; k++) {
+                    avalaibleCells[k].remove(i);
+                }
                 for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
                     if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
                         bufferGrid[classId][j] = true;
@@ -403,20 +413,38 @@ public class LandscapeGenerator {
      * @return true if landscape generation was successful, otherwise false
      */
     public boolean generate(double terrainDependency, int maxTry, int maxTryPatch) {
+        return generate(terrainDependency, maxTry, maxTryPatch, true);
+    }
+
+    /**
+     * Landscape generation main algorithm
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param maxTry Maximum number of trials for landscape generation
+     * @param maxTryPatch Maximum number of trials for patch generation
+     * @param verbose If true print progress
+     * @return true if landscape generation was successful, otherwise false
+     */
+    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch, boolean verbose) {
         nbTry = 0;
         boolean b = false;
         while (!b && nbTry < maxTry) {
             nbTry++;
             b = true;
             for (int i = 0; i < structure.names.length; i++) {
-                System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ---------------------");
+                if (verbose) {
+                    System.out.println("---------------------  Generating patches for class " + structure.names[i] + "  ---------------------");
+                }
                 int nbPatches = structure.nbPatches[i];
                 int[] sizes = structure.patchSizes[i];
-                System.out.println("Number of patches = " + nbPatches);
-                System.out.println("Patch sizes = " + Arrays.toString(sizes));
+                if (verbose) {
+                    System.out.println("Number of patches = " + nbPatches);
+                    System.out.println("Patch sizes = " + Arrays.toString(sizes));
+                }
                 for (int j = sizes.length - 1; j >= 0; j--) {
                     int k = sizes[j];
-                    System.out.println("Generating patch of size " + k);
+                    if (verbose) {
+                        System.out.println("Generating patch of size " + k);
+                    }
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
                         patchGenerated = generatePatch(i, k, terrainDependency, false);
