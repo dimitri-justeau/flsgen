@@ -80,7 +80,7 @@ public class LandscapeGenerator {
     protected boolean[][] bufferGrid;
     protected int[][] neighbors;
     protected int nbAvailableCells;
-    protected IndexedTreeSet<Integer> avalaibleCells[];
+    protected ISet avalaibleCells[];
     protected int nbTry;
 
     public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain) {
@@ -119,9 +119,9 @@ public class LandscapeGenerator {
     public void init() {
         this.rasterGrid = new int[grid.getNbCells()];
         this.bufferGrid = new boolean[nbClasses][];
-        this.avalaibleCells = new IndexedTreeSet[nbClasses];
+        this.avalaibleCells = new ISet[nbClasses];
         for (int i = 0; i < nbClasses; i++) {
-            avalaibleCells[i] = new IndexedTreeSet<>();
+            avalaibleCells[i] = SetFactory.makeBipartiteSet(0);
             bufferGrid[i] = new boolean[grid.getNbCells()];
         }
         for (int i = 0; i < grid.getNbCells(); i++) {
@@ -175,10 +175,19 @@ public class LandscapeGenerator {
                 for (int k = 0; k < avalaibleCells.length; k++) {
                     avalaibleCells[k].remove(i);
                 }
-                for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
-                    if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
-                        bufferGrid[classId][j] = true;
-                        avalaibleCells[classId].remove(j);
+                boolean border = false;
+                for (int j : neighbors[i]) {
+                    if (rasterGrid[j] == NODATA) {
+                        border = true;
+                        break;
+                    }
+                }
+                if (border) {
+                    for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
+                        if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
+                            bufferGrid[classId][j] = true;
+                            avalaibleCells[classId].remove(j);
+                        }
                     }
                 }
             }
@@ -370,8 +379,8 @@ public class LandscapeGenerator {
         return new SecureRandom().nextInt(max - min) + min;
     }
 
-    public int getRandomCell(IndexedTreeSet<Integer> cells) {
-        return cells.exact(new SecureRandom().nextInt(cells.size()));
+    public int getRandomCell(ISet cells) {
+        return cells.toArray()[(new SecureRandom().nextInt(cells.size()))];
     }
 
     /**
@@ -460,6 +469,60 @@ public class LandscapeGenerator {
                 if (!b) {
                     init();
                     break;
+                }
+            }
+        }
+        return b;
+    }
+
+    /**
+     * Landscape generation main algorithm
+     * @param terrainDependency the terrain dependency, between 0 (no terrain dependency) and 1 (only guided by terrain)
+     * @param maxTry Maximum number of trials for landscape generation
+     * @param maxTryPatch Maximum number of trials for patch generation
+     * @return true if landscape generation was successful, otherwise false
+     */
+    public boolean generateAlt(double terrainDependency, int maxTry, int maxTryPatch) {
+        nbTry = 0;
+        boolean b = false;
+        while (!b && nbTry < maxTry) {
+            nbTry++;
+            b = true;
+
+            Map<Integer, List<Integer>> patches = new HashMap();
+            for (int i = 0; i < structure.names.length; i++) {
+                List<Integer> cls = new ArrayList();
+                for (int j : structure.patchSizes[i]) {
+                    cls.add(j);
+                }
+                Collections.shuffle(cls);
+                patches.put(i, cls);
+            }
+            int c = 0;
+            while (!patches.isEmpty()) {
+                Random rand = new Random(System.currentTimeMillis());
+                int i = patches.keySet().stream().mapToInt(v -> v).toArray()[c];
+                boolean patchGenerated = false;
+                int k = patches.get(i).remove(patches.get(i).size() - 1);
+                System.out.println("Generate patch of class " + i + " of size " + k);
+                for (int p = 0; p < maxTryPatch; p++) {
+                    patchGenerated = generatePatch(i, k, terrainDependency, false);
+                    if (patchGenerated) {
+                        break;
+                    }
+                }
+                b &= patchGenerated;
+                if (!b) {
+                    init();
+                    break;
+                }
+                if (patches.get(i).size() == 0) {
+                    patches.remove(i);
+                }
+                if (c >= patches.size() - 1) {
+                    c = 0;
+                } else {
+                    c++;
                 }
             }
         }

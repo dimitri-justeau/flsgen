@@ -24,9 +24,11 @@ package org.flsgen.solver;
 
 import com.github.cliftonlabs.json_simple.JsonException;
 import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.Grid;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.opengis.referencing.FactoryException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -101,6 +103,21 @@ public class UseCaseTest {
             Assert.assertTrue(struct != null);
             Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
             Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
+        }
+    }
+
+    @Test
+    public void useCase6_LargeLandscape() throws IOException, JsonException, FlsgenException, FactoryException {
+        String path = getClass().getClassLoader().getResource("targets_6.json").getPath();
+        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
+        ls.build();
+        ls.setRandomSearch();
+        LandscapeStructure struct = ls.findSolution();
+        Terrain terrain = new Terrain(ls.grid);
+        terrain.generateDiamondSquare(0.4);
+        LandscapeGenerator gen = new LandscapeGenerator(struct, Neighborhoods.FOUR_CONNECTED, Neighborhoods.VARIABLE_WIDTH_FOUR_CONNECTED(4, 8), terrain);
+        if (gen.generateAlt(0.8, 1, 5)) {
+            gen.exportRaster(0, 0, 1, "EPSG:4326", "/home/djusteau/GIS/large_raster_test.tif");
         }
     }
 
