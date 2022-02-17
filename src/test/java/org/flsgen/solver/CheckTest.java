@@ -28,6 +28,7 @@ import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import static org.flsgen.utils.CheckLandscape.checkNP;
@@ -69,5 +70,27 @@ public class CheckTest {
                 Assert.assertTrue(Arrays.equals(area2, struct.getPatchSizes(2)));
             }
         }
+    }
+
+    @Test
+    public void testStructureFromRaster() throws IOException {
+        String path = getClass().getClassLoader().getResource("test_raster.tif").getPath();
+        LandscapeStructure struct = LandscapeStructure.fromRaster(path, new int[] {0, 1, 2}, Neighborhoods.FOUR_CONNECTED);
+        Assert.assertEquals(struct.getNbPatches(0), 40);
+        Assert.assertEquals(struct.getNbPatches(1), 30);
+        Assert.assertEquals(struct.getNbPatches(2), 20);
+        Assert.assertEquals(struct.getLandscapeProportion(0), 20);
+        Assert.assertEquals(struct.getLandscapeProportion(1), 10);
+        Assert.assertEquals(struct.getLandscapeProportion(2), 10);
+        RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
+        Terrain terrain = new Terrain(grid);
+        terrain.generateDiamondSquare(0.4);
+        LandscapeGenerator generator = new LandscapeGenerator(
+                struct,
+                Neighborhoods.FOUR_CONNECTED,
+                Neighborhoods.FOUR_CONNECTED,
+                terrain
+        );
+        Assert.assertTrue(generator.generate(0.5, 5, 10, false));
     }
 }

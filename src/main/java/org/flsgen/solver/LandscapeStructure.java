@@ -26,9 +26,21 @@ import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
+import org.chocosolver.util.graphOperations.connectivity.ConnectivityFinder;
+import org.chocosolver.util.objects.graphs.GraphFactory;
+import org.chocosolver.util.objects.graphs.UndirectedGraph;
+import org.chocosolver.util.objects.setDataStructures.SetType;
+import org.flsgen.grid.neighborhood.INeighborhood;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.data.DataSourceException;
+import org.geotools.gce.geotiff.GeoTiffReader;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
  * Class representing a landscape structure instantiation - for storing and retrieving solutions.
@@ -130,6 +142,48 @@ public class LandscapeStructure {
             }
         }
         return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
+    }
+
+    public static LandscapeStructure fromRaster(String rasterPath, int[] focalClasses, INeighborhood neighborhood) throws IOException {
+        File file = new File(rasterPath);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        int nbRows = gridCov.getRenderedImage().getHeight();
+        int nbCols = gridCov.getRenderedImage().getWidth();
+        int[] values = new int[nbRows * nbCols];
+        gridCov.getRenderedImage().getData().getSamples(0, 0, nbCols, nbRows, 0, values);
+        String[] names = IntStream.of(focalClasses).mapToObj(i -> "" + i).toArray(String[]::new);
+        int[] nbPatches = new int[focalClasses.length];
+        int[] totalSize = new int[focalClasses.length];
+        int[][] patchSizes = new int[focalClasses.length][];
+        RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
+        for (int k = 0; k < focalClasses.length; k++) {
+            int classId = focalClasses[k];
+            UndirectedGraph g = GraphFactory.makeUndirectedGraph(grid.getNbCells(), SetType.RANGESET, SetType.RANGESET);
+            for (int i = 0; i < grid.getNbCells(); i++) {
+                if (values[i] == classId) {
+                    g.addNode(i);
+                }
+            }
+            totalSize[k] = g.getNodes().size();
+            for (int i : g.getNodes()) {
+                for (int j : neighborhood.getNeighbors(grid, i)) {
+                    if (values[j] == classId) {
+                        g.addEdge(i, j);
+                    }
+                }
+            }
+            ConnectivityFinder cf = new ConnectivityFinder(g);
+            cf.findAllCC();
+            int nbCC = cf.getNBCC();
+            nbPatches[k] = nbCC;
+            patchSizes[k] = new int[nbCC];
+            for (int i = 0; i < nbCC; i++) {
+                patchSizes[k][i] = cf.getSizeCC()[i];
+            }
+            Arrays.sort(patchSizes[k]);
+        }
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, new long[focalClasses.length]);
     }
 
     public int getLandscapeSize() {
