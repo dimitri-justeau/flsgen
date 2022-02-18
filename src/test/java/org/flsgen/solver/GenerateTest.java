@@ -71,6 +71,5 @@ public class GenerateTest {
         );
         boolean b = generator.generate(0.95, 5, 10);
         Assert.assertTrue(b);
-        generator.exportRaster(0,0,480, "EPSG:3163", "/home/djusteau/GIS/Raster/test_mask.tif");
     }
 }
