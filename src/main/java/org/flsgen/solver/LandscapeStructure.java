@@ -33,7 +33,6 @@ import org.chocosolver.util.objects.setDataStructures.SetType;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
 
 import java.io.File;
@@ -133,12 +132,20 @@ public class LandscapeStructure {
         for (int i = 0; i < classes.size(); i++) {
             JsonObject c = (JsonObject) classes.get(i);
             names[i] = (String) c.get("name");
-            nbPatches[i] = Integer.parseInt(c.get(LandscapeStructureSolver.KEY_NP).toString());
-            npro[i] = Long.parseLong(c.get(LandscapeStructureSolver.KEY_NPRO).toString());
             JsonArray sizes = (JsonArray) c.get(LandscapeStructureSolver.KEY_AREA);
             patchSizes[i] = new int[sizes.size()];
             for (int j = 0; j < sizes.size(); j++) {
                 patchSizes[i][j] = Integer.parseInt(sizes.get(j).toString());
+            }
+            nbPatches[i] = patchSizes[i].length;
+            if (c.containsKey(LandscapeStructureSolver.KEY_NPRO)) {
+                npro[i] = Long.parseLong(c.get(LandscapeStructureSolver.KEY_NPRO).toString());
+            } else {
+                long netProduct = 0;
+                for (int p : patchSizes[i]) {
+                    netProduct += Long.valueOf(p) * Long.valueOf(p);
+                }
+                npro[i] = netProduct;
             }
         }
         return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
@@ -183,6 +190,8 @@ public class LandscapeStructure {
             }
             Arrays.sort(patchSizes[k]);
         }
+        gridCov.dispose(true);
+        reader.dispose();
         return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, new long[focalClasses.length]);
     }
 

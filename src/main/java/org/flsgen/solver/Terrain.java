@@ -63,6 +63,8 @@ public class Terrain {
         dem = IntStream.range(0, grid.getNbCells())
                 .mapToDouble(i -> buff.getElemDouble(i))
                 .toArray();
+        gridCov.dispose(true);
+        reader.dispose();
     }
 
     public void generateDiamondSquare(double roughnessFactor) {
@@ -148,5 +150,7 @@ public class Terrain {
         GeoTiffWriter writer = new GeoTiffWriter(new File(dest));
         writer.write(gc,null);
         System.out.println("Fractal terrain raster exported at " + dest);
+        gc.dispose(true);
+        writer.dispose();
     }
 }

@@ -29,7 +29,12 @@ import org.chocosolver.util.objects.setDataStructures.SetType;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.LandscapeGenerator;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.util.CoverageUtilities;
+import org.geotools.gce.geotiff.GeoTiffReader;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class CheckLandscape {
@@ -69,5 +74,15 @@ public class CheckLandscape {
             }
         }
         return g;
+    }
+
+    public static double getNodataValue(String rasterPath) throws IOException {
+        File file = new File(rasterPath);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        double noData = CoverageUtilities.getNoDataProperty(gridCov).getAsSingleValue();
+        gridCov.dispose(true);
+        reader.dispose();
+        return noData;
     }
 }

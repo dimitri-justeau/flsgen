@@ -28,6 +28,7 @@ import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.opengis.referencing.FactoryException;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.FileReader;
@@ -52,5 +53,24 @@ public class GenerateTest {
         Path temp = Files.createTempFile("landscape_struct_target", ".tif");
         generator.exportRaster(0, 0, 0.001, "EPSG:4326", temp.toString());
         Files.delete(temp);
+    }
+
+    @Test
+    public void generateLandscapeWithMask() throws IOException, FactoryException {
+        String path = getClass().getClassLoader().getResource("mask_raster.tif").getPath();
+        LandscapeStructure struct = LandscapeStructure.fromRaster(path, new int[] {1}, Neighborhoods.FOUR_CONNECTED);
+        RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
+        Terrain terrain = new Terrain(grid);
+        terrain.generateDiamondSquare(0.01);
+        LandscapeGenerator generator = new LandscapeGenerator(
+                struct,
+                Neighborhoods.PARTIAL_FOUR_CONNECTED,
+                Neighborhoods.PARTIAL_TWO_WIDE_FOUR_CONNECTED,
+                terrain,
+                path
+        );
+        boolean b = generator.generate(0.95, 5, 10);
+        Assert.assertTrue(b);
+        generator.exportRaster(0,0,480, "EPSG:3163", "/home/djusteau/GIS/Raster/test_mask.tif");
     }
 }

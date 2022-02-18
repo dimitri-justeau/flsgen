@@ -106,6 +106,7 @@ public class CLI_LandscapeStructureSolver implements Runnable {
                     reader = new FileReader(jsonPaths[i]);
                 }
                 LandscapeStructureSolver lSolver = LandscapeStructureSolver.readFromJSON(reader);
+                reader.close();
                 lSolver.build();
                 switch (search) {
                     case DEFAULT:

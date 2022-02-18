@@ -126,5 +126,7 @@ public class CLI_FractalTerrain implements Runnable {
         srs = gridCov.getEnvelope2D().getCoordinateReferenceSystem().getIdentifiers().iterator().next().toString();
         x = gridCov.getEnvelope2D().getMinX();
         y = gridCov.getEnvelope2D().getMinY();
+        gridCov.dispose(true);
+        reader.dispose();
     }
 }

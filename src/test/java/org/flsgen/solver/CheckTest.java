@@ -58,7 +58,7 @@ public class CheckTest {
             if (gen.generate(0.5, 10, 10, false)) {
                 int np0 = checkNP(gen, 0, Neighborhoods.FOUR_CONNECTED);
                 int np1 = checkNP(gen, 1, Neighborhoods.FOUR_CONNECTED);
-                int np2 = checkNP(gen, 2, Neighborhoods.TWO_WIDE_FOUR_CONNECTED);
+                int np2 = checkNP(gen, 2, Neighborhoods.FOUR_CONNECTED);
                 int[] area0 = checkAREA(gen, 0, Neighborhoods.FOUR_CONNECTED);
                 int[] area1 = checkAREA(gen, 1, Neighborhoods.FOUR_CONNECTED);
                 int[] area2 = checkAREA(gen, 2, Neighborhoods.FOUR_CONNECTED);

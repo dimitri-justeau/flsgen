@@ -214,6 +214,7 @@ public class CLI_LandscapeGenerator implements Runnable {
                     reader = new FileReader(jsonPaths[i]);
                 }
                 LandscapeStructure s = LandscapeStructure.fromJSON(reader);
+                reader.close();
                 // Generate landscape
                 Terrain terrain = new Terrain(new RegularSquareGrid(s.getNbRows(), s.getNbCols()));
                 if (terrainInput.equals("")) {
@@ -282,5 +283,7 @@ public class CLI_LandscapeGenerator implements Runnable {
         srs = gridCov.getEnvelope2D().getCoordinateReferenceSystem().getIdentifiers().iterator().next().toString();
         x = gridCov.getEnvelope2D().getMinX();
         y = gridCov.getEnvelope2D().getMinY();
+        gridCov.dispose(true);
+        reader.dispose();
     }
 }

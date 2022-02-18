@@ -26,9 +26,11 @@ import io.github.geniot.indexedtreemap.IndexedTreeSet;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridCoverageFactory;
+import org.geotools.gce.geotiff.GeoTiffReader;
 import org.geotools.gce.geotiff.GeoTiffWriter;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
@@ -44,6 +46,8 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
+
+import static org.flsgen.utils.CheckLandscape.getNodataValue;
 
 /**
  * Stochastic landscape generator from predefined landscape structures. Rely on a terrain to guide the generation.
@@ -82,6 +86,7 @@ public class LandscapeGenerator {
     protected int nbAvailableCells;
     protected ISet avalaibleCells[];
     protected int nbTry;
+    protected int maskValue;
 
     public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain) {
         this.structure = structure;
@@ -96,6 +101,42 @@ public class LandscapeGenerator {
         }
         init();
     }
+
+    public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain,
+                              String maskRasterPath) throws IOException {
+        this(structure, neighborhood, bufferNeighborhood, terrain, maskRasterPath, (int) getNodataValue(maskRasterPath));
+    }
+
+    public LandscapeGenerator(LandscapeStructure structure, INeighborhood neighborhood, INeighborhood bufferNeighborhood, Terrain terrain,
+                              String maskRasterPath, int maskValue) throws IOException {
+        // Identify cells to mask
+        this.maskValue = maskValue;
+        File file = new File(maskRasterPath);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        int nbRows = gridCov.getRenderedImage().getHeight();
+        int nbCols = gridCov.getRenderedImage().getWidth();
+        int[] maskRast = new int[nbRows * nbCols];
+        gridCov.getRenderedImage().getData().getSamples(0, 0, nbCols, nbRows, 0, maskRast);
+        gridCov.dispose(true);
+        reader.dispose();
+        int[] mask = IntStream.range(0, maskRast.length)
+                .filter(i -> maskRast[i] == maskValue)
+                .toArray();
+        //
+        this.structure = structure;
+        this.grid = new PartialRegularSquareGrid(structure.getNbRows(), structure.getNbCols(), mask);
+        this.nbClasses = structure.names.length;
+        this.terrain = terrain;
+        this.neighborhood = neighborhood;
+        this.bufferNeighborhood = bufferNeighborhood;
+        this.neighbors = new int[grid.getNbCells()][];
+        for (int i = 0; i < grid.getNbCells(); i++) {
+            neighbors[i] = neighborhood.getNeighbors(grid, i);
+        }
+        init();
+    }
+
 
     public Terrain getTerrain() {
         return terrain;
@@ -154,14 +195,28 @@ public class LandscapeGenerator {
         nbAvailableCells--;
         boolean success = true;
         NeighborhoodSelectionStrategy strategy = NeighborhoodSelectionStrategy.FROM_ALL;
-        IndexedTreeSet<Integer> neigh = new IndexedTreeSet<>((t1, t2) -> {
-            if (terrain.dem[t1] == terrain.dem[t2]) {
-                return 0;
-            } else if (terrain.dem[t1] < terrain.dem[t2]) {
-                return -1;
-            }
-            return 1;
-        });
+        IndexedTreeSet<Integer> neigh;
+        if (grid instanceof PartialRegularSquareGrid) {
+            neigh = new IndexedTreeSet<>((t1, t2) -> {
+                int tt1 = ((PartialRegularSquareGrid) grid).getCompleteIndex(t1);
+                int tt2 = ((PartialRegularSquareGrid) grid).getCompleteIndex(t2);
+                if (terrain.dem[tt1] == terrain.dem[tt2]) {
+                    return 0;
+                } else if (terrain.dem[tt1] < terrain.dem[tt2]) {
+                    return -1;
+                }
+                return 1;
+            });
+        } else {
+            neigh = new IndexedTreeSet<>((t1, t2) -> {
+                if (terrain.dem[t1] == terrain.dem[t2]) {
+                    return 0;
+                } else if (terrain.dem[t1] < terrain.dem[t2]) {
+                    return -1;
+                }
+                return 1;
+            });
+        }
         while (n < size) {
             int next = findNext(classId, n, cells, terrainDependency, noHole, strategy, neigh);
             if (next == -1) {
@@ -401,7 +456,19 @@ public class LandscapeGenerator {
                 y, y + (grid.getNbRows() * resolution),
                 crs
         );
-        int[] data = IntStream.range(0, this.grid.getNbCells()).map(i -> rasterGrid[i]).toArray();
+        int[] data;
+        if (grid instanceof PartialRegularSquareGrid) {
+            data = new int[grid.getNbCols() * grid.getNbRows()];
+            for (int i = 0; i < data.length; i++) {
+                if (!((PartialRegularSquareGrid) grid).getDiscardSet().contains(i)) {
+                    data[i] = rasterGrid[((PartialRegularSquareGrid) grid).getPartialIndex(i)];
+                } else {
+                    data[i] = maskValue;
+                }
+            }
+        } else {
+            data = IntStream.range(0, this.grid.getNbCells()).map(i -> rasterGrid[i]).toArray();
+        }
         WritableRaster rast = RasterFactory.createBandedRaster(
                 DataBuffer.TYPE_INT,
                 grid.getNbCols(), grid.getNbRows(),
@@ -412,6 +479,8 @@ public class LandscapeGenerator {
         GeoTiffWriter writer = new GeoTiffWriter(new File(dest));
         writer.write(gc,null);
         System.out.println("Landscape raster exported at " + dest);
+        gc.dispose(true);
+        writer.dispose();
     }
 
     /**
