@@ -116,9 +116,8 @@ public class UseCaseTest {
         Terrain terrain = new Terrain(ls.grid);
         terrain.generateDiamondSquare(0.4);
         LandscapeGenerator gen = new LandscapeGenerator(struct, Neighborhoods.FOUR_CONNECTED, Neighborhoods.VARIABLE_WIDTH_FOUR_CONNECTED(4, 8), terrain);
-        if (gen.generateAlt(0.8, 1, 5)) {
-            gen.exportRaster(0, 0, 1, "EPSG:4326", "/home/djusteau/GIS/large_raster_test.tif");
-        }
+        Assert.assertTrue(gen.generateAlt(0.8, 1, 5));
+
     }
 
     @Test
