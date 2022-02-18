@@ -27,6 +27,7 @@ import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 
 import java.util.Random;
@@ -34,12 +35,12 @@ import java.util.Random;
 /**
  * variable-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
-public class VariableWidthFourConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
+public class PartialVariableWidthHeightConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
     private int minWidth;
     private int maxWidth;
 
-    public VariableWidthFourConnected(int minWidth, int maxWidth) throws FlsgenException {
+    public PartialVariableWidthHeightConnected(int minWidth, int maxWidth) throws FlsgenException {
         if (maxWidth < minWidth) {
             throw new FlsgenException("Min width must be lower than max width");
         }
@@ -48,11 +49,11 @@ public class VariableWidthFourConnected<T extends RegularSquareGrid> implements 
     }
 
     public int[] getNeighbors(T grid, int i) {
-        FourConnected four = Neighborhoods.FOUR_CONNECTED;
-        int[] fourNeigh = four.getNeighbors(grid, i);
+        PartialHeightConnected height = Neighborhoods.PARTIAL_HEIGHT_CONNECTED;
+        int[] heightNeigh = height.getNeighbors(grid, i);
         ISet neighbors = SetFactory.makeRangeSet();
         ISet next = SetFactory.makeRangeSet();
-        for (int n : fourNeigh) {
+        for (int n : heightNeigh) {
             neighbors.add(n);
             next.add(n);
         }
@@ -63,7 +64,7 @@ public class VariableWidthFourConnected<T extends RegularSquareGrid> implements 
             next.clear();
             for (int n : nextA) {
                 if (j < minWidth || rd.nextBoolean()) {
-                    for (int neigh : four.getNeighbors(grid, n)) {
+                    for (int neigh : height.getNeighbors(grid, n)) {
                         neighbors.add(neigh);
                         next.add(neigh);
                     }

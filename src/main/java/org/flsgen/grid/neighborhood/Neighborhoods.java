@@ -43,15 +43,31 @@ public class Neighborhoods {
         return new KWideFourConnected(k);
     }
 
+    public final static PartialKWideFourConnected PARTIAL_K_WIDE_FOUR_CONNECTED(int k) {
+        return new PartialKWideFourConnected(k);
+    }
+
     public final static VariableWidthFourConnected VARIABLE_WIDTH_FOUR_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
         return new VariableWidthFourConnected(minWidth, maxWidth);
     }
 
-    public final static KWideHeighConnected K_WIDE_HEIGHT_CONNECTED(int k) {
-        return new KWideHeighConnected(k);
+    public final static PartialVariableWidthFourConnected PARTIAL_VARIABLE_WIDTH_FOUR_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
+        return new PartialVariableWidthFourConnected(minWidth, maxWidth);
+    }
+
+    public final static KWideHeightConnected K_WIDE_HEIGHT_CONNECTED(int k) {
+        return new KWideHeightConnected(k);
+    }
+
+    public final static PartialKWideHeightConnected PARTIAL_K_WIDE_HEIGHT_CONNECTED(int k) {
+        return new PartialKWideHeightConnected(k);
     }
 
     public final static VariableWidthHeightConnected VARIABLE_WIDTH_HEIGHT_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
         return new VariableWidthHeightConnected(minWidth, maxWidth);
+    }
+
+    public final static PartialVariableWidthHeightConnected PARTIAL_VARIABLE_WIDTH_HEIGHT_CONNECTED(int minWidth, int maxWidth) throws FlsgenException {
+        return new PartialVariableWidthHeightConnected(minWidth, maxWidth);
     }
 }

@@ -26,25 +26,26 @@ import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
-public class KWideHeighConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
+public class PartialKWideFourConnected<T extends PartialRegularSquareGrid> implements INeighborhood<T> {
 
     private int k;
 
-    public KWideHeighConnected(int k) {
+    public PartialKWideFourConnected(int k) {
         this.k = k;
     }
 
     public int[] getNeighbors(T grid, int i) {
-        HeightConnected height = Neighborhoods.HEIGHT_CONNECTED;
-        int[] heightNeigh = height.getNeighbors(grid, i);
+        PartialFourConnected four = Neighborhoods.PARTIAL_FOUR_CONNECTED;
+        int[] fourNeigh = four.getNeighbors(grid, i);
         ISet neighbors = SetFactory.makeRangeSet();
         ISet next = SetFactory.makeRangeSet();
-        for (int n : heightNeigh) {
+        for (int n : fourNeigh) {
             neighbors.add(n);
             next.add(n);
         }
@@ -52,7 +53,7 @@ public class KWideHeighConnected<T extends RegularSquareGrid> implements INeighb
             int[] nextA = next.toArray();
             next.clear();
             for (int n : nextA) {
-                for (int neigh : height.getNeighbors(grid, n)) {
+                for (int neigh : four.getNeighbors(grid, n)) {
                     neighbors.add(neigh);
                     next.add(neigh);
                 }

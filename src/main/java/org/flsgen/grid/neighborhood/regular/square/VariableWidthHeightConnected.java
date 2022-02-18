@@ -32,7 +32,7 @@ import org.flsgen.grid.regular.square.RegularSquareGrid;
 import java.util.Random;
 
 /**
- * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.
+ * variable-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
 public class VariableWidthHeightConnected<T extends RegularSquareGrid> implements INeighborhood<T> {
 

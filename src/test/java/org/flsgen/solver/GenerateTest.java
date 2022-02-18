@@ -56,7 +56,7 @@ public class GenerateTest {
     }
 
     @Test
-    public void generateLandscapeWithMask() throws IOException, FactoryException {
+    public void generateLandscapeWithMask() throws IOException, FactoryException, FlsgenException {
         String path = getClass().getClassLoader().getResource("mask_raster.tif").getPath();
         LandscapeStructure struct = LandscapeStructure.fromRaster(path, new int[] {1}, Neighborhoods.FOUR_CONNECTED);
         RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
@@ -65,7 +65,7 @@ public class GenerateTest {
         LandscapeGenerator generator = new LandscapeGenerator(
                 struct,
                 Neighborhoods.PARTIAL_FOUR_CONNECTED,
-                Neighborhoods.PARTIAL_TWO_WIDE_FOUR_CONNECTED,
+                Neighborhoods.PARTIAL_VARIABLE_WIDTH_FOUR_CONNECTED(1, 2),
                 terrain,
                 path
         );
