@@ -32,7 +32,9 @@ import org.chocosolver.solver.search.limits.TimeCounter;
 import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.variables.IntVar;
 import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
+import org.flsgen.utils.CheckLandscape;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -70,9 +72,20 @@ public class LandscapeStructureSolver {
     protected IntVar totalSum;
     protected boolean isBuilt;
     protected IntVar[] decisionVariables;
+    protected String maskRasterPath;
 
     public LandscapeStructureSolver(RegularSquareGrid grid) {
         this.grid = grid;
+        this.nbCells = grid.getNbCells();
+        this.model = new Model();
+        this.landscapeClasses = new ArrayList<>();
+        this.isBuilt = false;
+    }
+    public LandscapeStructureSolver(String maskRasterPath) throws IOException {
+        this.maskRasterPath = maskRasterPath;
+        int[] dimensions = CheckLandscape.getDimensions(maskRasterPath);
+        int[] noDataCells = CheckLandscape.getNodataCells(maskRasterPath);
+        this.grid = new PartialRegularSquareGrid(dimensions[0], dimensions[1], noDataCells);
         this.nbCells = grid.getNbCells();
         this.model = new Model();
         this.landscapeClasses = new ArrayList<>();
@@ -199,12 +212,15 @@ public class LandscapeStructureSolver {
     }
 
     /**
-     * @return A JSON representation of the landscape structure org.flsgen.solver (formatted as expected in readFromJSON)
+     * @return A JSON representation of the landscape structure targets (formatted as expected in readFromJSON)
      */
     public String toJSON() {
         JsonObject json = new JsonObject();
         json.put("nbRows", grid.getNbRows());
         json.put("nbCols", grid.getNbCols());
+        if (maskRasterPath != null) {
+            json.put("maskRasterPath", maskRasterPath);
+        }
         JsonArray classes = new JsonArray();
         for (LandscapeClass l : landscapeClasses) {
             JsonObject cl = new JsonObject();
@@ -239,8 +255,14 @@ public class LandscapeStructureSolver {
         }
         int nbRows = Integer.parseInt(targets.get("nbRows").toString());
         int nbCols = Integer.parseInt(targets.get("nbCols").toString());
-        RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
-        LandscapeStructureSolver lStructSolver = new LandscapeStructureSolver(grid);
+        LandscapeStructureSolver lStructSolver;
+        if (targets.containsKey("maskRasterPath")) {
+            String maskRasterPath = targets.get("maskRasterPath").toString();
+            lStructSolver = new LandscapeStructureSolver(maskRasterPath);
+        } else {
+            RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
+            lStructSolver = new LandscapeStructureSolver(grid);
+        }
         // Get classes
         if (!targets.containsKey("classes")) {
             throw new IOException("'classes' is a mandatory parameter but missing in input JSON file");

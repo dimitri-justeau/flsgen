@@ -24,7 +24,6 @@ package org.flsgen.solver;
 
 import com.github.cliftonlabs.json_simple.JsonException;
 import org.flsgen.exception.FlsgenException;
-import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.opengis.referencing.FactoryException;
@@ -46,9 +45,7 @@ public class GenerateTest {
         RegularSquareGrid grid = new RegularSquareGrid(200, 200);
         Terrain terrain = new Terrain(grid);
         terrain.loadFromRaster(rasterPath);
-        INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
-        INeighborhood distance = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
-        LandscapeGenerator generator = new LandscapeGenerator(structure, neighborhood, distance, terrain);
+        LandscapeGenerator generator = new LandscapeGenerator(structure, 4, 2, terrain);
         generator.generate(0.5, 10,10);
         Path temp = Files.createTempFile("landscape_struct_target", ".tif");
         generator.exportRaster(0, 0, 0.001, "EPSG:4326", temp.toString());
@@ -62,13 +59,7 @@ public class GenerateTest {
         RegularSquareGrid grid = new RegularSquareGrid(struct.getNbRows(), struct.getNbCols());
         Terrain terrain = new Terrain(grid);
         terrain.generateDiamondSquare(0.01);
-        LandscapeGenerator generator = new LandscapeGenerator(
-                struct,
-                Neighborhoods.PARTIAL_FOUR_CONNECTED,
-                Neighborhoods.PARTIAL_VARIABLE_WIDTH_FOUR_CONNECTED(1, 2),
-                terrain,
-                path
-        );
+        LandscapeGenerator generator = new LandscapeGenerator(struct, 4, 1, 2, terrain);
         boolean b = generator.generate(0.95, 5, 10);
         Assert.assertTrue(b);
     }

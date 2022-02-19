@@ -31,11 +31,13 @@ import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.LandscapeGenerator;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.util.CoverageUtilities;
+import org.geotools.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 public class CheckLandscape {
 
@@ -84,5 +86,28 @@ public class CheckLandscape {
         gridCov.dispose(true);
         reader.dispose();
         return noData;
+    }
+
+    public static int[] getDimensions(String rasterPath) throws IOException {
+        File file = new File(rasterPath);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        int nbRows = gridCov.getRenderedImage().getHeight();
+        int nbCols = gridCov.getRenderedImage().getWidth();
+        return new int[] {nbRows, nbCols};
+    }
+
+    public static int[] getNodataCells(String rasterPath) throws IOException {
+        int noData = (int) getNodataValue(rasterPath);
+        File file = new File(rasterPath);
+        GeoTiffReader reader = new GeoTiffReader(file);
+        GridCoverage2D gridCov = reader.read(null);
+        int nbRows = gridCov.getRenderedImage().getHeight();
+        int nbCols = gridCov.getRenderedImage().getWidth();
+        int[] values = new int[nbRows * nbCols];
+        gridCov.getRenderedImage().getData().getSamples(0, 0, nbCols, nbRows, 0, values);
+        gridCov.dispose(true);
+        reader.dispose();
+        return IntStream.range(0, values.length).filter(i -> values[i] == noData).toArray();
     }
 }
