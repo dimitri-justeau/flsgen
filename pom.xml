@@ -147,10 +147,9 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.8</version>
+                <version>3.2.0</version>
             </plugin>
         </plugins>
     </build>
@@ -162,7 +161,7 @@
 <!--            <version>4.10.9-SNAPSHOT</version>-->
 <!--        </dependency>-->
         <dependency>
-            <groupId>com.github.chocoteam</groupId>
+            <groupId>com.github.chocoteam.choco-solver</groupId>
             <artifactId>choco-solver</artifactId>
             <version>a3badec404</version>
         </dependency>
@@ -187,15 +186,15 @@
             <version>4.5.0</version>
         </dependency>
         <dependency>
+            <groupId>io.github.geniot</groupId>
+            <artifactId>indexedtreemap</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>RELEASE</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.github.geniot</groupId>
-            <artifactId>indexedtreemap</artifactId>
-            <version>1.1</version>
         </dependency>
     </dependencies>
 

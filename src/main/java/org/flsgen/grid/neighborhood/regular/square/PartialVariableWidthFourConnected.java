@@ -28,7 +28,6 @@ import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
 
 import java.util.Random;
 

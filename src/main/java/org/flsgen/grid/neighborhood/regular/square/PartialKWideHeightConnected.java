@@ -27,7 +27,6 @@ import org.chocosolver.util.objects.setDataStructures.SetFactory;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
 
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.

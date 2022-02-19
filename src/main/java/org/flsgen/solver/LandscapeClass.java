@@ -32,7 +32,8 @@ import org.flsgen.solver.choco.PropSumOfSquares;
 
 import java.util.Arrays;
 
-import static org.flsgen.cli.ANSIColors.*;
+import static org.flsgen.cli.ANSIColors.ANSI_RED;
+import static org.flsgen.cli.ANSIColors.ANSI_RESET;
 
 /**
  * Class representing a landscape class that must be present in the generated landscape

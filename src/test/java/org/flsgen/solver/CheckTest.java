@@ -31,8 +31,8 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.flsgen.utils.CheckLandscape.checkNP;
 import static org.flsgen.utils.CheckLandscape.checkAREA;
+import static org.flsgen.utils.CheckLandscape.checkNP;
 
 public class CheckTest {
 

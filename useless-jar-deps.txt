@@ -1,0 +1,9 @@
+apache pdf
+apache fontbox
+eclipse
+google commons
+ehcache
+geotools
+	styling
+	feature
+	filter

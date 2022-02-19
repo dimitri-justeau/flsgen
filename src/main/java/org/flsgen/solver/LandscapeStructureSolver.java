@@ -114,6 +114,10 @@ public class LandscapeStructureSolver {
         this.isBuilt = true;
     }
 
+    public RegularSquareGrid getGrid() {
+        return grid;
+    }
+
     public int getLandscapeSize() {
         return grid.getNbCells();
     }

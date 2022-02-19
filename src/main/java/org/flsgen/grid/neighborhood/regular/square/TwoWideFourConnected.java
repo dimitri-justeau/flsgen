@@ -28,9 +28,6 @@ import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The 2-wide four-connected neighborhood in a regular square org.flsgen.grid.
  */
