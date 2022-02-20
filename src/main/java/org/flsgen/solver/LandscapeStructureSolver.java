@@ -250,16 +250,17 @@ public class LandscapeStructureSolver {
     public static LandscapeStructureSolver readFromJSON(Reader reader) throws IOException, JsonException, FlsgenException {
         JsonObject targets = (JsonObject) Jsoner.deserialize(reader);
         // Get map dimensions
-        if (!targets.containsKey("nbRows") || !targets.containsKey("nbCols")) {
-            throw new IOException("'nbRows' and 'nbCols' are mandatory parameters but missing in input JSON file");
-        }
-        int nbRows = Integer.parseInt(targets.get("nbRows").toString());
-        int nbCols = Integer.parseInt(targets.get("nbCols").toString());
         LandscapeStructureSolver lStructSolver;
         if (targets.containsKey("maskRasterPath")) {
             String maskRasterPath = targets.get("maskRasterPath").toString();
             lStructSolver = new LandscapeStructureSolver(maskRasterPath);
         } else {
+            if (!targets.containsKey("nbRows") || !targets.containsKey("nbCols")) {
+                throw new IOException("Either 'maskRasterPath' or 'nbRows' and 'nbCols' are mandatory " +
+                        "parameters but missing in input JSON file");
+            }
+            int nbRows = Integer.parseInt(targets.get("nbRows").toString());
+            int nbCols = Integer.parseInt(targets.get("nbCols").toString());
             RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
             lStructSolver = new LandscapeStructureSolver(grid);
         }

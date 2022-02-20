@@ -146,8 +146,6 @@ public class LandscapeStructure {
 
     public static LandscapeStructure fromJSON(Reader reader) throws JsonException, IOException {
         JsonObject structure = (JsonObject) Jsoner.deserialize(reader);
-        int nbRows = Integer.parseInt(structure.get("nbRows").toString());
-        int nbCols = Integer.parseInt(structure.get("nbCols").toString());
         JsonArray classes = (JsonArray) structure.get("classes");
         String[] names = new String[classes.size()];
         int[] totalSize = new int[classes.size()];
@@ -175,12 +173,15 @@ public class LandscapeStructure {
         }
         if (structure.containsKey("maskRasterPath")) {
             String maskRasterPath = structure.get("maskRasterPath").toString();
+            int[] dimensions = CheckLandscape.getDimensions(maskRasterPath);
             return new LandscapeStructure(
-                    nbRows, nbCols, maskRasterPath,
+                    dimensions[0], dimensions[1], maskRasterPath,
                     CheckLandscape.getNodataCells(maskRasterPath),
                     names, totalSize, nbPatches, patchSizes, npro
             );
         }
+        int nbRows = Integer.parseInt(structure.get("nbRows").toString());
+        int nbCols = Integer.parseInt(structure.get("nbCols").toString());
         return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
     }
 
