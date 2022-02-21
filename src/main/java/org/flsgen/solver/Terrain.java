@@ -133,12 +133,12 @@ public class Terrain {
         return new Random().nextDouble() * (max - min) + min;
     }
 
-    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+    public void exportRaster(double x, double y, double resolution_x, double resolution_y, String epsg, String dest) throws IOException, FactoryException {
         GridCoverageFactory gcf = new GridCoverageFactory();
         CoordinateReferenceSystem crs = CRS.decode(epsg);
         ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(
-                x, x + (grid.getNbCols() * resolution),
-                y, y + (grid.getNbRows() * resolution),
+                x, x + (grid.getNbCols() * resolution_x),
+                y - + (grid.getNbRows() * resolution_y), y,
                 crs
         );
         WritableRaster rast = RasterFactory.createBandedRaster(
@@ -154,4 +154,9 @@ public class Terrain {
         gc.dispose(true);
         writer.dispose();
     }
+
+    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+        exportRaster(x, y, resolution, resolution, epsg, dest);
+    }
+
 }

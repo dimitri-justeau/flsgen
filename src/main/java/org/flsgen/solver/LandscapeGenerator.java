@@ -425,20 +425,25 @@ public class LandscapeGenerator {
      * Export the generated landscape to a raster file
      * @param x X position (geographical coordinates) of the top-left output raster pixel
      * @param y Y position (geographical coordinates) of the top-left output raster pixel
-     * @param resolution Spatial resolution (geographical units) of the output raster (i.e. pixel dimension)
+     * @param resolution_x x-spatial resolution (geographical units) of the output raster (i.e. pixel width)
+     * @param resolution_y y-spatial resolution (geographical units) of the output raster (i.e. pixel height)
      * @param epsg EPSG identifier of the output projection
      * @param dest path of output raster
      * @throws IOException
      * @throws FactoryException
      */
-    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+    public void exportRaster(double x, double y, double resolution_x, double resolution_y, String epsg, String dest) throws IOException, FactoryException {
         GridCoverageFactory gcf = new GridCoverageFactory();
         CoordinateReferenceSystem crs = CRS.decode(epsg);
         ReferencedEnvelope referencedEnvelope = new ReferencedEnvelope(
-                x, x + (grid.getNbCols() * resolution),
-                y, y + (grid.getNbRows() * resolution),
+                x, x + (grid.getNbCols() * resolution_x),
+                y - (grid.getNbRows() * resolution_y), y,
                 crs
         );
+        System.out.println(referencedEnvelope.getMinX());
+        System.out.println(referencedEnvelope.getMinY());
+        System.out.println(referencedEnvelope.getMaxX());
+        System.out.println(referencedEnvelope.getMaxY());
         int[] data;
         if (grid instanceof PartialRegularSquareGrid) {
             int noDataValue = (int) CheckLandscape.getNodataValue(structure.maskRasterPath);
@@ -465,6 +470,10 @@ public class LandscapeGenerator {
         System.out.println("Landscape raster exported at " + dest);
         gc.dispose(true);
         writer.dispose();
+    }
+
+    public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
+        exportRaster(x, y, resolution, resolution, epsg, dest);
     }
 
     /**
