@@ -39,6 +39,7 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 public class Terrain {
@@ -129,7 +130,7 @@ public class Terrain {
     }
 
     public static double randomDouble(double min, double max) {
-        return new SecureRandom().nextDouble() * (max - min) + min;
+        return new Random().nextDouble() * (max - min) + min;
     }
 
     public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {

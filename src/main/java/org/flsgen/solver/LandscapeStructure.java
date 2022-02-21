@@ -36,6 +36,7 @@ import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.utils.CheckLandscape;
+import org.flsgen.utils.RasterConnectivityFinder;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.gce.geotiff.GeoTiffReader;
 
@@ -197,39 +198,17 @@ public class LandscapeStructure {
         int nbCols = gridCov.getRenderedImage().getWidth();
         int[] values = new int[nbRows * nbCols];
         gridCov.getRenderedImage().getData().getSamples(0, 0, nbCols, nbRows, 0, values);
+        gridCov.dispose(true);
+        reader.dispose();
         String[] names = IntStream.of(focalClasses).mapToObj(i -> "" + i).toArray(String[]::new);
         int[] nbPatches = new int[focalClasses.length];
         int[] totalSize = new int[focalClasses.length];
         int[][] patchSizes = new int[focalClasses.length][];
-        RegularSquareGrid grid = new RegularSquareGrid(nbRows, nbCols);
-        ISet nodata = SetFactory.makeRangeSet();
-        int nodataValue = (int) CheckLandscape.getNodataValue(rasterPath);
-        UndirectedGraph[] graphs = new UndirectedGraph[focalClasses.length];
-        Map<Integer, Integer> classValToClassId = new HashMap<>();
+        long[] npro = new long[focalClasses.length];
         for (int k = 0; k < focalClasses.length; k++) {
-            graphs[k] = GraphFactory.makeUndirectedGraph(grid.getNbCells(), SetType.RANGESET, SetType.RANGESET);
-            classValToClassId.put(focalClasses[k], k);
-        }
-        for (int i = 0; i < grid.getNbCells(); i++) {
-            if (classValToClassId.containsKey(values[i])) {
-                graphs[classValToClassId.get(values[i])].addNode(i);
-            }
-            if (discardNoData && values[i] == nodataValue) {
-                nodata.add(i);
-            }
-        }
-        for (int k = 0; k < focalClasses.length; k++) {
-            UndirectedGraph g = graphs[k];
             int classId = focalClasses[k];
-            totalSize[k] = g.getNodes().size();
-            for (int i : g.getNodes()) {
-                for (int j : neighborhood.getNeighbors(grid, i)) {
-                    if (values[j] == classId) {
-                        g.addEdge(i, j);
-                    }
-                }
-            }
-            ConnectivityFinder cf = new ConnectivityFinder(g);
+            RasterConnectivityFinder cf = new RasterConnectivityFinder(nbRows, nbCols, values, classId, neighborhood);
+            totalSize[k] = cf.getNbNodes();
             cf.findAllCC();
             int nbCC = cf.getNBCC();
             nbPatches[k] = nbCC;
@@ -237,15 +216,14 @@ public class LandscapeStructure {
             for (int i = 0; i < nbCC; i++) {
                 patchSizes[k][i] = cf.getSizeCC()[i];
             }
+            npro[k] = cf.getNpro();
             Arrays.sort(patchSizes[k]);
         }
-        gridCov.dispose(true);
-        reader.dispose();
         if (discardNoData) {
-            int[] noDataCells = nodata.toArray();
-            return new LandscapeStructure(nbRows, nbCols, rasterPath, noDataCells, names, totalSize, nbPatches, patchSizes, new long[focalClasses.length]);
+            int[] noDataCells = CheckLandscape.getNodataCells(rasterPath);
+            return new LandscapeStructure(nbRows, nbCols, rasterPath, noDataCells, names, totalSize, nbPatches, patchSizes, npro);
         }
-        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, new long[focalClasses.length]);
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
     }
 
     public int getLandscapeSize() {

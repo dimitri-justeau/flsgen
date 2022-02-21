@@ -63,4 +63,16 @@ public class GenerateTest {
         boolean b = generator.generate(0.95, 5, 10);
         Assert.assertTrue(b);
     }
+
+    @Test
+    public void testGenerateWithUniformTerrain() throws IOException, FlsgenException {
+        String path = getClass().getClassLoader().getResource("mask_raster.tif").getPath();
+        String terrain_path = getClass().getClassLoader().getResource("uniform_mask.tif").getPath();
+        LandscapeStructure struct = LandscapeStructure.fromRaster(path, new int[] {1}, Neighborhoods.FOUR_CONNECTED);
+        Terrain t = new Terrain(new RegularSquareGrid(struct.getNbRows(), struct.getNbCols()));
+        t.loadFromRaster(terrain_path);
+        LandscapeGenerator gen = new LandscapeGenerator(struct, 4, 1, 2, t);
+        boolean b = gen.generate(0, 1, 5, false);
+        Assert.assertTrue(b);
+    }
 }

@@ -25,6 +25,7 @@ package org.flsgen.solver;
 import io.github.geniot.indexedtreemap.IndexedTreeSet;
 import org.chocosolver.util.objects.setDataStructures.ISet;
 import org.chocosolver.util.objects.setDataStructures.SetFactory;
+import org.chocosolver.util.objects.setDataStructures.swapList.Set_Swap;
 import org.flsgen.exception.FlsgenException;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.neighborhood.Neighborhoods;
@@ -44,7 +45,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
@@ -182,8 +182,9 @@ public class LandscapeGenerator {
                 int tt1 = ((PartialRegularSquareGrid) grid).getCompleteIndex(t1);
                 int tt2 = ((PartialRegularSquareGrid) grid).getCompleteIndex(t2);
                 if (terrain.dem[tt1] == terrain.dem[tt2]) {
-                    return 0;
-                } else if (terrain.dem[tt1] < terrain.dem[tt2]) {
+                    return tt1 - tt2;
+                }
+                if (terrain.dem[tt1] <= terrain.dem[tt2]) {
                     return -1;
                 }
                 return 1;
@@ -191,8 +192,9 @@ public class LandscapeGenerator {
         } else {
             neigh = new IndexedTreeSet<>((t1, t2) -> {
                 if (terrain.dem[t1] == terrain.dem[t2]) {
-                    return 0;
-                } else if (terrain.dem[t1] < terrain.dem[t2]) {
+                    return t1 -t2;
+                }
+                if (terrain.dem[t1] <= terrain.dem[t2]) {
                     return -1;
                 }
                 return 1;
@@ -412,11 +414,11 @@ public class LandscapeGenerator {
     }
 
     public int randomInt(int min, int max) {
-        return new SecureRandom().nextInt(max - min) + min;
+        return new Random().nextInt(max - min) + min;
     }
 
     public int getRandomCell(ISet cells) {
-        return cells.toArray()[(new SecureRandom().nextInt(cells.size()))];
+        return ((Set_Swap) cells).getNth(new Random().nextInt(cells.size()));
     }
 
     /**

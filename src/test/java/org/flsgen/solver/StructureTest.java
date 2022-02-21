@@ -24,6 +24,8 @@ package org.flsgen.solver;
 
 import com.github.cliftonlabs.json_simple.JsonException;
 import org.flsgen.exception.FlsgenException;
+import org.flsgen.grid.neighborhood.Neighborhoods;
+import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.testng.annotations.Test;
 
 import java.io.FileReader;
