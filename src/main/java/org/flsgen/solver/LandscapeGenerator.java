@@ -440,10 +440,6 @@ public class LandscapeGenerator {
                 y - (grid.getNbRows() * resolution_y), y,
                 crs
         );
-        System.out.println(referencedEnvelope.getMinX());
-        System.out.println(referencedEnvelope.getMinY());
-        System.out.println(referencedEnvelope.getMaxX());
-        System.out.println(referencedEnvelope.getMaxY());
         int[] data;
         if (grid instanceof PartialRegularSquareGrid) {
             int noDataValue = (int) CheckLandscape.getNodataValue(structure.maskRasterPath);
