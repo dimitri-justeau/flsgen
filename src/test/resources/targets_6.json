@@ -1,7 +1,7 @@
 {
   "nbRows" : 2000,
   "nbCols" : 2000,
-  "NON_FOCAL_PLAND": [20, 30],
+  "NON_FOCAL_PLAND": [30, 100],
   "classes" : [
     {
       "name": "Class 1",
