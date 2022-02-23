@@ -7,7 +7,8 @@
     * [Fractal terrain generation](#terrain)
     * [Landscape structure generation](#structure)
     * [Landscape raster generation](#generate)
-
+    * [Masking](#masking)
+    * [Extracting structures from existing landscape](#extract)
 
 `flsgen` is a neutral landscape generator that allows users to set targets on landscape indices. It first relies on Choco-solver to identify landscape structure satisfying user targets, then uses a stochastic algorithm to produce landscape rasters.
 
@@ -21,13 +22,13 @@ Java 8+ must be installed in your system to run flsgen. For the command-line int
 The most straightforward way to use fslgen is the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
 
 ```bash
-java -jar flsgen-1.0-beta-SNAPSHOT.jar
+java -jar flsgen-1.1.0.jar
 ```
 
 You should get the following output:
 
 ```bash
-Usage: FLSGen [-hV] [COMMAND]
+Usage: flsgen [-hV] [COMMAND]
 A fragmented neutral landscape generator
   -h, --help      Show this help message and exit.
   -V, --version   Print version information and exit.
@@ -39,7 +40,7 @@ Commands:
   terrain    Generate a fractal terrain using the Diamond-Square algorithm.
 ```
 
-To avoid typing `java -jar flsgen-1.0-beta-SNAPSHOT.jar` each time you need to use flsgen, you can create the following alias: `alias flsgen='java -jar flsgen-1.0-beta-SNAPSHOT.jar'` in your `.bashrc` or `.profile` file (in Linux).
+To avoid typing `java -jar flsgen-1.1.0.jar` each time you need to use flsgen, you can create the following alias: `alias flsgen='java -jar flsgen-1.1.0.jar'` in your `.bashrc` or `.profile` file (in Linux). The following examples assume that this step has been done. If you did not create the alias, simply replace `flsgen` by `java -jar flsgen-1.1.0.jar`.
 
 ### Java API
 
@@ -60,7 +61,7 @@ mvn clean install
 Using the CLI, you can easily generate a fractal terrain raster using the `flsgen terrain` CLI command:
 
 ```bash
-Usage: FLSGen terrain [-hV] -H=<nbRows> [-r=<resolution>]
+Usage: flsgen terrain [-hV] -H=<nbRows> [-r=<resolution>]
                       [-R=<roughnessFactor>] [-s=<srs>] [-t=<template>]
                       -W=<nbCols> [-x=<x>] [-y=<y>] <output>
 Generate a fractal terrain using the Diamond-Square algorithm
@@ -162,7 +163,7 @@ The first step is to create a JSON file (e.g. `target.json`) describing these ta
 Using the CLI, you can generate a non-spatially-explicit landscape structure using the `flsgen structure` command:
 
 ```bash
-Usage: FLSGen structure [-hV] [-n=<nbSolutions>] [-s=<search>] <outputPrefix>
+Usage: flsgen structure [-hV] [-n=<nbSolutions>] [-s=<search>] <outputPrefix>
                         [<jsonPaths>...]
 Generate a landscape structure satisfying a set of targets
       <outputPrefix>     JSON output file (or prefix for multiple structure
@@ -232,7 +233,7 @@ Now, let's generate a landscape raster from the previously generated structure.
 Using the CLI, we use the `flsgen generate` command to generate a landscape raster from a landscape structure:
 
 ```bash
-Usage: FLSGen generate [-hV] [-c=<connectivity>] [-D=<minDistance>]
+Usage: flsgen generate [-hV] [-c=<connectivity>] [-D=<minDistance>]
                        [-e=<terrainOutput>] [-l=<terrainInput>] [-m=<maxTry>]
                        [-n=<nbLandscapes>] [-p=<maxTryPatch>] [-r=<resolution>]
                        [-R=<roughnessFactor>] [-s=<srs>] [-t=<template>]
@@ -333,4 +334,43 @@ public class GenerateTest {
         generator.exportRaster(0, 0, 0.001, "EPSG:4326", "landscape_struct_target.tif");
     }
 }
+```
+
+### Masking  <a name="masking"></a>
+
+It is possible to use a mask raster, whose NO_DATA cell will be unavailable for both focal and non-focal classes. To do so, instead of specifying the number of rows and columns in the targets, specify the mask raster in targets with the `maskRasterPath` key:
+
+```json
+{
+  "maskRasterPath": "mask.tif"
+  "classes" : [
+    {
+      "name" : "Class A", 
+      "NP" : [2, 30], 
+      "AREA" : [200, 4000], 
+      "PLAND" : [40, 40]
+    }
+  ]
+}
+```
+
+or:
+
+### Extracting structures from existing landscapes <a name="extract"></a>
+
+Instead of generating landscape structure from targets, it is also possible to extract existing structures from real landscapes and use them to recreate real composition patterns. To do so, simply use the `flsgen extract_structure` command:
+
+```bash
+Usage: flsgen extract_structure [-hV] [-c=<connectivity>] <inputRaster>
+                                <outputFile> [<focalClasses>...]
+Extracts a landscape structure from an existing raster.
+      <inputRaster>         Raster (.tif) input file to extract the landscape
+                              structure from
+      <outputFile>          JSON output file -- Use "-" to write to STDOUT
+      [<focalClasses>...]   Raster values of the focal classes
+  -c, --connectivity=<connectivity>
+                            Connectivity definition in the regular grid - '4'
+                              (4-connected) or '8' (8-connected) (default: 4).
+  -h, --help                Show this help message and exit.
+  -V, --version             Print version information and exit.
 ```

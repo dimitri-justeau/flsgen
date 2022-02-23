@@ -33,11 +33,12 @@ import java.util.logging.Logger;
  */
 
 @CommandLine.Command(
-        name = "FLSGen",
+        name = "flsgen",
         mixinStandardHelpOptions = true,
         description = "A fragmented neutral landscape generator",
         subcommands = {
             CLI_LandscapeStructureSolver.class,
+            CLI_LandscapeStructureFromRaster.class,
             CLI_LandscapeGenerator.class,
             CLI_FractalTerrain.class
         }

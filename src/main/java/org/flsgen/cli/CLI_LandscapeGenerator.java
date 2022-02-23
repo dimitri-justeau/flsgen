@@ -161,7 +161,7 @@ public class CLI_LandscapeGenerator implements Runnable {
 
     @CommandLine.Option(
             names = {"-c", "--connectivity"},
-            description = "Connectivity definition in the regular square org.flsgen.grid - '4' (4-connected)" +
+            description = "Connectivity definition in the regular square grid - '4' (4-connected)" +
                     " or '8' (8-connected) (default: 4).",
             defaultValue = "4"
     )

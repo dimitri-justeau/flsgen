@@ -60,10 +60,8 @@ public class LandscapeClass {
     // Choco variables
     protected Model model;
     protected IntVar[] patchSizes;
-//    protected IntVar[] squaredPatchSizes;
     protected IntVar sum;
     protected IntVar meanPatchArea;
-//    private IntVar sumOfSquares;
     protected IntVar nbPatches;
 
     public LandscapeClass(String name, int index, RegularSquareGrid grid, Model model, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) throws FlsgenException {
@@ -97,17 +95,6 @@ public class LandscapeClass {
         this.sum = model.intVar(minPatchSize * minNbPatches, maxPatchSize * maxNbPatches);
         model.sum(patchSizes, "=", sum).post();
     }
-
-//    public void initNetProduct(int netProductLB, int netProductUB) {
-//        this.squaredPatchSizes = model.intVarArray(maxNbPatches, 0, maxPatchSize * maxPatchSize);
-//        for (int i = 0; i < maxNbPatches; i++) {
-//            model.times(patchSizes[i], patchSizes[i], squaredPatchSizes[i]).post();
-//        }
-//        this.sumOfSquares = model.intVar(netProductLB, netProductUB);
-//        model.sum(squaredPatchSizes, "=", sumOfSquares).post();
-//        model.post(new Constraint("sumOfSquares", new PropSumOfSquares(patchSizes, netProductLB, netProductUB)));
-//    }
-
     ///--- USER TARGETS ---///
 
     // AREA_MN - Mean patch area
@@ -130,18 +117,6 @@ public class LandscapeClass {
                     " Note that the solver can only enforce integer division," +
                     " thus the result can deviate slightly (< 1)." + ANSI_RESET);
         }
-
-        // Version real
-//        RealVar meanPatchArea = model.realVar(minMeanPatchArea, maxMeanPatchArea, 0.001);
-//        RealVar meanTimesNP = model.realVar(
-//                minMeanPatchArea * nbPatches.getLB(),
-//                maxMeanPatchArea * nbPatches.getUB(),
-//                0.001
-//        );
-//        Constraint c = new Constraint("timesMixed", new PropTimesNaiveMixed(nbPatches, meanPatchArea, meanTimesNP));
-//        model.post(c);
-//        model.scalar(new Variable[] {sum, meanTimesNP}, new double[] {1, -1}, "=", 0.0).post();
-        // Version int
         int lb = (int) minMeanPatchArea;
         int ub = (int) (maxMeanPatchArea > minMeanPatchArea ? maxMeanPatchArea - 1 : maxMeanPatchArea);
         if (meanPatchArea == null) {
@@ -259,12 +234,7 @@ public class LandscapeClass {
         if (maxNetProduct < minNetProduct) {
             throw new FlsgenException("Max NPRO must be greater than or equal to min NPRO");
         }
-//        if (sumOfSquares == null) {
-//            initNetProduct(minNetProduct, maxNetProduct);
-//        }
         model.post(new Constraint("sumOfSquares", new PropSumOfSquares(patchSizes, minNetProduct, maxNetProduct)));
-//        model.arithm(sumOfSquares, ">=", minNetProduct).post();
-//        model.arithm(sumOfSquares, "<=", maxNetProduct).post();
     }
 
     // SPLI - Splitting index
@@ -340,7 +310,6 @@ public class LandscapeClass {
      */
     public void setAllPatchesDifferentSize() {
         model.allDifferentUnderCondition(patchSizes, Condition.EXCEPT_0, true, "BC").post();
-//        model.allDifferentExcept0(patchSizes).post();
     }
 
     /**

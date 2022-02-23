@@ -26,12 +26,6 @@ import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
-import org.chocosolver.util.graphOperations.connectivity.ConnectivityFinder;
-import org.chocosolver.util.objects.graphs.GraphFactory;
-import org.chocosolver.util.objects.graphs.UndirectedGraph;
-import org.chocosolver.util.objects.setDataStructures.ISet;
-import org.chocosolver.util.objects.setDataStructures.SetFactory;
-import org.chocosolver.util.objects.setDataStructures.SetType;
 import org.flsgen.grid.neighborhood.INeighborhood;
 import org.flsgen.grid.regular.square.PartialRegularSquareGrid;
 import org.flsgen.grid.regular.square.RegularSquareGrid;
@@ -44,8 +38,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 /**
