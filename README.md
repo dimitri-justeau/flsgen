@@ -19,7 +19,7 @@ Java 8+ must be installed in your system to run flsgen. For the command-line int
 
 ### Command-line interface (CLI)
 
-The most straightforward way to use fslgen is the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
+The most straightforward way to use fslgen is the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/download/v1.1.0/flsgen-1.1.0.jar). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
 
 ```bash
 java -jar flsgen-1.1.0.jar
