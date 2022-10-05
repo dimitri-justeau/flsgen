@@ -92,6 +92,7 @@ public class LandscapeClass {
             model.ifThen(model.arithm(patchSizes[i], "!=", 0).reify(), model.arithm(patchSizes[i], ">=", minPatchSize));
             model.arithm(patchSizes[i], "<=", patchSizes[i + 1]).post();
         }
+        model.increasing(patchSizes, 0).post();
         this.sum = model.intVar(minPatchSize * minNbPatches, maxPatchSize * maxNbPatches);
         model.sum(patchSizes, "=", sum).post();
     }

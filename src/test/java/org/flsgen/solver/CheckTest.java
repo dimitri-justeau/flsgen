@@ -40,9 +40,9 @@ public class CheckTest {
     public void testNP_AND_AREA() throws FlsgenException {
         RegularSquareGrid grid = new RegularSquareGrid(50, 50);
         LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
-        ls.landscapeClass("cls0", 2, 10, 60, 100);
-        ls.landscapeClass("cls1", 2, 10, 60, 100);
-        ls.landscapeClass("cls2", 2, 10, 60, 100);
+        ls.landscapeClass("cls0", 2, 10, 60, 100, false);
+        ls.landscapeClass("cls1", 2, 10, 60, 100, false);
+        ls.landscapeClass("cls2", 2, 10, 60, 100, false);
         ls.build();
         ls.setRandomSearch();
         Terrain t = new Terrain(grid);
@@ -73,7 +73,7 @@ public class CheckTest {
     }
 
     @Test
-    public void testStructureFromRaster() throws IOException {
+    public void testStructureFromRaster() throws IOException, FlsgenException {
         String path = getClass().getClassLoader().getResource("test_raster.tif").getPath();
         LandscapeStructure struct = LandscapeStructure.fromRaster(path, new int[] {0, 1, 2}, Neighborhoods.FOUR_CONNECTED);
         Assert.assertEquals(struct.getNbPatches(0), 40);

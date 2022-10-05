@@ -97,7 +97,7 @@ public class UseCaseTest {
         LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
         ls.build();
         for (int i = 0; i < 100; i++) {
-            LandscapeStructure struct = ls.findSolution(2);
+            LandscapeStructure struct = ls.findSolution(5);
             Assert.assertTrue(struct != null);
             Assert.assertTrue(struct.getMeanPatchArea(0) >= 1200);
             Assert.assertTrue(struct.getMeanPatchArea(0) <= 1300);
@@ -119,12 +119,45 @@ public class UseCaseTest {
     }
 
     @Test
+    public void useCase7_Squares() throws IOException, JsonException, FlsgenException {
+        String path = getClass().getClassLoader().getResource("targets_7_squares.json").getPath();
+        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
+        ls.build();
+        LandscapeStructure struct = ls.findSolution(5);
+        Assert.assertNotNull(struct);
+        Terrain terrain = new Terrain(ls.grid);
+        terrain.generateDiamondSquare(0.4);
+        LandscapeGenerator gen = new LandscapeGenerator(
+                struct, Neighborhoods.FOUR_CONNECTED,
+                Neighborhoods.TWO_WIDE_FOUR_CONNECTED, terrain
+        );
+        Assert.assertTrue(gen.generate(0, 10, 10));
+    }
+
+    @Test
+    public void useCase8_Squares() throws IOException, JsonException, FlsgenException {
+        String path = getClass().getClassLoader().getResource("targets_8_squares.json").getPath();
+        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader(path));
+        ls.build();
+        ls.getModel().getSolver().showStatistics();
+        LandscapeStructure struct = ls.findSolution(5);
+        Assert.assertNotNull(struct);
+        Terrain terrain = new Terrain(ls.grid);
+        terrain.generateDiamondSquare(0.4);
+        LandscapeGenerator gen = new LandscapeGenerator(
+                struct, Neighborhoods.FOUR_CONNECTED,
+                Neighborhoods.TWO_WIDE_FOUR_CONNECTED, terrain
+        );
+        Assert.assertTrue(gen.generate(0, 10, 10));
+    }
+
+    @Test
     public void useCaseNonFocalPland() throws FlsgenException {
         RegularSquareGrid grid = new RegularSquareGrid(200, 200);
         LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
-        ls.landscapeClass("Class 1", 1, 10, 0, 10000);
-        ls.landscapeClass("Class 2", 1, 10, 0, 10000);
-        ls.landscapeClass("Class 3", 1, 10, 0, 10000);
+        ls.landscapeClass("Class 1", 1, 10, 0, 10000, false);
+        ls.landscapeClass("Class 2", 1, 10, 0, 10000, false);
+        ls.landscapeClass("Class 3", 1, 10, 0, 10000, false);
         ls.build();
         ls.setNonFocalLandscapeProportion(20, 25);
         for (int i = 0; i < 100; i++) {
@@ -140,7 +173,7 @@ public class UseCaseTest {
         double[] mesh = new double[] {1000, 2000, 3000, 4000, 5000};
         for (double m : mesh) {
             LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
-            LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100);
+            LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100, false);
             c.setMesh(0.999 * m, 1.001 * m);
             ls.build();
             LandscapeStructure s = ls.findSolution();
@@ -160,7 +193,7 @@ public class UseCaseTest {
         double[] mesh = new double[] {1000, 2000, 3000, 4000, 5000};
         for (double m : mesh) {
             LandscapeStructureSolver ls = new LandscapeStructureSolver(grid);
-            LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100);
+            LandscapeClass c = ls.landscapeClass("habitat", 1, 10, 100, 100*100, false);
             c.setMesh(0.999 * m, 1.001 * m);
             ls.build();
             LandscapeStructure s = ls.findSolution();

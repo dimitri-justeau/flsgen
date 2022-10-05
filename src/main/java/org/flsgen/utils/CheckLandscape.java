@@ -31,7 +31,6 @@ import org.flsgen.grid.regular.square.RegularSquareGrid;
 import org.flsgen.solver.LandscapeGenerator;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.util.CoverageUtilities;
-import org.geotools.data.DataSourceException;
 import org.geotools.gce.geotiff.GeoTiffReader;
 
 import java.io.File;

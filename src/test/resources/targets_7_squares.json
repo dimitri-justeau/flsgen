@@ -1,0 +1,13 @@
+{
+  "nbRows" : 500,
+  "nbCols" : 500,
+  "classes" : [
+    {
+      "name" : "Class A",
+      "NP" : [4, 64],
+      "PLAND": [40, 40],
+      "AREA": [1, 100000],
+      "IS_SQUARE": true
+    }
+  ]
+}

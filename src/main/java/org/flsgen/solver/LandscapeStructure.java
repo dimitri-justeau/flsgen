@@ -52,11 +52,13 @@ public class LandscapeStructure {
     protected int[] nbPatches; // NP
     protected int[][] patchSizes; // AREA
     protected long[] npro; // NPRO
+    protected boolean[] isSquare;
     protected LandscapeStructureSolver s;
     protected RegularSquareGrid grid;
     protected String maskRasterPath;
 
-    public LandscapeStructure(int nbRows, int nbCols, String maskRasterPath, int[] noDataCells, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, long[] npro) {
+    public LandscapeStructure(int nbRows, int nbCols, String maskRasterPath, int[] noDataCells, String[] names,
+                              int[] totalSize, int[] nbPatches, int[][] patchSizes, long[] npro, boolean[] isSquare) {
         this.nbRows = nbRows;
         this.nbCols = nbCols;
         this.maskRasterPath = maskRasterPath;
@@ -64,6 +66,7 @@ public class LandscapeStructure {
         this.totalSize = totalSize;
         this.nbPatches = nbPatches;
         this.patchSizes = patchSizes;
+        this.isSquare = isSquare;
         this.npro = npro;
         if (noDataCells.length > 0) {
             this.grid = new PartialRegularSquareGrid(nbRows, nbCols, noDataCells);
@@ -72,8 +75,9 @@ public class LandscapeStructure {
         }
     }
 
-    public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes, long[] npro) {
-        this(nbRows, nbCols, null, new int[] {}, names, totalSize, nbPatches, patchSizes, npro);
+    public LandscapeStructure(int nbRows, int nbCols, String[] names, int[] totalSize, int[] nbPatches, int[][] patchSizes,
+                              long[] npro, boolean[] isSquare) {
+        this(nbRows, nbCols, null, new int[] {}, names, totalSize, nbPatches, patchSizes, npro, isSquare);
     }
 
     public LandscapeStructure(LandscapeStructureSolver s) {
@@ -89,12 +93,14 @@ public class LandscapeStructure {
         this.nbPatches = new int[s.landscapeClasses.size()];
         this.patchSizes = new int[s.landscapeClasses.size()][];
         this.npro = new long[s.landscapeClasses.size()];
+        this.isSquare = new boolean[s.landscapeClasses.size()];
         for (int i = 0; i < s.landscapeClasses.size(); i++) {
             names[i] = s.landscapeClasses.get(i).name;
             nbPatches[i] = s.landscapeClasses.get(i).getNbPatches();
             patchSizes[i] = s.landscapeClasses.get(i).getPatchSizes();
             npro[i] = s.landscapeClasses.get(i).getNetProduct();
             totalSize[i] = s.landscapeClasses.get(i).getTotalSize();
+            isSquare[i] = s.landscapeClasses.get(i) instanceof SquaresLandscapeClass;
         }
     }
 
@@ -145,6 +151,7 @@ public class LandscapeStructure {
         int[] nbPatches = new int[classes.size()];
         int[][] patchSizes = new int[classes.size()][];
         long[] npro = new long[classes.size()];
+        boolean[] isSquare = new boolean[classes.size()];
         for (int i = 0; i < classes.size(); i++) {
             JsonObject c = (JsonObject) classes.get(i);
             names[i] = (String) c.get("name");
@@ -163,6 +170,11 @@ public class LandscapeStructure {
                 }
                 npro[i] = netProduct;
             }
+            if (c.containsKey(LandscapeStructureSolver.IS_SQUARE)) {
+                isSquare[i] = Boolean.parseBoolean(c.get(LandscapeStructureSolver.IS_SQUARE).toString());
+            } else {
+                isSquare[i] = false;
+            }
         }
         if (structure.containsKey("maskRasterPath")) {
             String maskRasterPath = structure.get("maskRasterPath").toString();
@@ -170,12 +182,12 @@ public class LandscapeStructure {
             return new LandscapeStructure(
                     dimensions[0], dimensions[1], maskRasterPath,
                     CheckLandscape.getNodataCells(maskRasterPath),
-                    names, totalSize, nbPatches, patchSizes, npro
+                    names, totalSize, nbPatches, patchSizes, npro, isSquare
             );
         }
         int nbRows = Integer.parseInt(structure.get("nbRows").toString());
         int nbCols = Integer.parseInt(structure.get("nbCols").toString());
-        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro, isSquare);
     }
 
     public static LandscapeStructure fromRaster(String rasterPath, int[] focalClasses, INeighborhood neighborhood) throws IOException {
@@ -197,6 +209,7 @@ public class LandscapeStructure {
         int[] totalSize = new int[focalClasses.length];
         int[][] patchSizes = new int[focalClasses.length][];
         long[] npro = new long[focalClasses.length];
+        boolean[] isSquare = new boolean[focalClasses.length];
         for (int k = 0; k < focalClasses.length; k++) {
             int classId = focalClasses[k];
             RasterConnectivityFinder cf = new RasterConnectivityFinder(nbRows, nbCols, values, classId, neighborhood);
@@ -210,12 +223,13 @@ public class LandscapeStructure {
             }
             npro[k] = cf.getNpro();
             Arrays.sort(patchSizes[k]);
+            isSquare[k] = false;
         }
         if (discardNoData) {
             int[] noDataCells = CheckLandscape.getNodataCells(rasterPath);
-            return new LandscapeStructure(nbRows, nbCols, rasterPath, noDataCells, names, totalSize, nbPatches, patchSizes, npro);
+            return new LandscapeStructure(nbRows, nbCols, rasterPath, noDataCells, names, totalSize, nbPatches, patchSizes, npro, isSquare);
         }
-        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro);
+        return new LandscapeStructure(nbRows, nbCols, names, totalSize, nbPatches, patchSizes, npro, isSquare);
     }
 
     public int getLandscapeSize() {

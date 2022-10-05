@@ -64,6 +64,7 @@ public class LandscapeStructureSolver {
     public static final String KEY_SDEN = "SDEN";
     public static final String KEY_COHE = "COHE";
     public static final String KEY_DIVI = "DIVI";
+    public static final String IS_SQUARE = "IS_SQUARE";
 
     protected RegularSquareGrid grid;
     protected int nbCells;
@@ -101,11 +102,16 @@ public class LandscapeStructureSolver {
      * @param maxPatchSize upper bound for patch size
      * @return a landscape class object that can be further constrained
      */
-    public LandscapeClass landscapeClass(String name, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize) throws FlsgenException {
+    public LandscapeClass landscapeClass(String name, int minNbPatches, int maxNbPatches, int minPatchSize, int maxPatchSize, boolean isSquare) throws FlsgenException {
         if (isBuilt) {
             throw new FlsgenException("Cannot add a landscape class to a landscape structure org.flsgen.solver which is already built");
         }
-        LandscapeClass ls = new LandscapeClass(name, landscapeClasses.size(), grid, getModel(), minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
+        LandscapeClass ls;
+        if (isSquare) {
+            ls = new SquaresLandscapeClass(name, landscapeClasses.size(), grid, getModel(), minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
+        } else {
+            ls = new LandscapeClass(name, landscapeClasses.size(), grid, getModel(), minNbPatches, maxNbPatches, minPatchSize, maxPatchSize);
+        }
         landscapeClasses.add(ls);
         return ls;
     }
@@ -280,8 +286,12 @@ public class LandscapeStructureSolver {
             int[] nbPatches = getIntInterval(cljson, KEY_NP, true, name);
             // Get min and max patch sizes
             int[] patchSize = getIntInterval(cljson, KEY_AREA, true, name);
+            boolean isSquare = false;
+            if (cljson.containsKey(IS_SQUARE)) {
+                isSquare = Boolean.parseBoolean(cljson.get(IS_SQUARE).toString());
+            }
             // Construct the landscape class
-            LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, nbPatches[0], nbPatches[1], patchSize[0], patchSize[1]);
+            LandscapeClass landscapeClass = lStructSolver.landscapeClass(name, nbPatches[0], nbPatches[1], patchSize[0], patchSize[1], isSquare);
             // Get landscape class constraints
             // AREA_MN
             double[] area_mn = getDoubleInterval(cljson, KEY_AREA_MN, false, name);

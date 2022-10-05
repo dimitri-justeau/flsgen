@@ -163,7 +163,7 @@
         <dependency>
             <groupId>com.github.chocoteam.choco-solver</groupId>
             <artifactId>choco-solver</artifactId>
-            <version>a3badec404</version>
+            <version>4.10.9</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

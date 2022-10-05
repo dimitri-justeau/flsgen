@@ -156,6 +156,82 @@ public class LandscapeGenerator {
         this.nbAvailableCells = grid.getNbCells();
     }
 
+    public boolean generateSquarePatch(int classId, int size) throws FlsgenException {
+        if (avalaibleCells[classId].size() < size) {
+            return false;
+        }
+        int[] cells = new int[size];
+        int width = (int) Math.sqrt(size);
+        if (width * 1.0 != Math.sqrt(size)) {
+            throw new FlsgenException("The patch " + classId + " of size " + size + " has not square dimensions.");
+        }
+        ISet accessibleCells = SetFactory.makeBipartiteSet(0);
+        for (int i : avalaibleCells[classId]) {
+            int[] c = grid.getCoordinatesFromIndex(i);
+            if (c[0] < grid.getNbRows() - width && c[1] < grid.getNbCols() - width) {
+                accessibleCells.add(i);
+            }
+        }
+        if (accessibleCells.size() == 0) {
+            return false;
+        }
+        cells[0] = getRandomCell(accessibleCells);
+        int current = cells[0];
+        int n = 1;
+        rasterGrid[current] = classId;
+        nbAvailableCells--;
+        boolean success = true;
+        int[] p1 = grid.getCoordinatesFromIndex(cells[0]);
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < width; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                int c = grid.getIndexFromCoordinates(p1[0] + i, p1[1] + j);
+                if (rasterGrid[c] == NODATA && !bufferGrid[classId][c]) {
+                    cells[n] = c;
+                    rasterGrid[c] = classId;
+                    nbAvailableCells--;
+                    n++;
+                } else {
+                    success = false;
+                    break;
+                }
+            }
+            if (!success) {
+                break;
+            }
+        }
+        if (success) { // Patch generation was successful, construct buffer.
+            for (int i : cells) {
+                for (int k = 0; k < avalaibleCells.length; k++) {
+                    avalaibleCells[k].remove(i);
+                }
+                boolean border = false;
+                for (int j : neighbors[i]) {
+                    if (rasterGrid[j] == NODATA) {
+                        border = true;
+                        break;
+                    }
+                }
+                if (border) {
+                    for (int j : bufferNeighborhood.getNeighbors(grid, i)) {
+                        if (rasterGrid[j] == NODATA && !bufferGrid[classId][j]) {
+                            bufferGrid[classId][j] = true;
+                            avalaibleCells[classId].remove(j);
+                        }
+                    }
+                }
+            }
+        } else { // Patch generation failed, backtrack org.flsgen.grid to the previous state.
+            for (int i = 0; i < n; i++) {
+                rasterGrid[cells[i]] = NODATA;
+                nbAvailableCells++;
+            }
+        }
+        return success;
+    }
+
     /**
      * Generates a patch in the landscape
      * @param classId the class of the patch to generate
@@ -421,6 +497,7 @@ public class LandscapeGenerator {
         return ((Set_Swap) cells).getNth(new Random().nextInt(cells.size()));
     }
 
+
     /**
      * Export the generated landscape to a raster file
      * @param x X position (geographical coordinates) of the top-left output raster pixel
@@ -479,7 +556,7 @@ public class LandscapeGenerator {
      * @param maxTryPatch Maximum number of trials for patch generation
      * @return true if landscape generation was successful, otherwise false
      */
-    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch) {
+    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch) throws FlsgenException {
         return generate(terrainDependency, maxTry, maxTryPatch, true);
     }
 
@@ -491,7 +568,7 @@ public class LandscapeGenerator {
      * @param verbose If true print progress
      * @return true if landscape generation was successful, otherwise false
      */
-    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch, boolean verbose) {
+    public boolean generate(double terrainDependency, int maxTry, int maxTryPatch, boolean verbose) throws FlsgenException {
         nbTry = 0;
         boolean b = false;
         while (!b && nbTry < maxTry) {
@@ -514,7 +591,11 @@ public class LandscapeGenerator {
                     }
                     boolean patchGenerated = false;
                     for (int p = 0; p < maxTryPatch; p++) {
-                        patchGenerated = generatePatch(i, k, terrainDependency, false);
+                        if (structure.isSquare[i]) {
+                            patchGenerated = generateSquarePatch(i, k);
+                        } else {
+                            patchGenerated = generatePatch(i, k, terrainDependency, false);
+                        }
                         if (patchGenerated) {
                             break;
                         }
