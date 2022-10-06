@@ -38,7 +38,6 @@ import java.awt.image.DataBuffer;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -66,6 +65,13 @@ public class Terrain {
                 .toArray();
         gridCov.dispose(true);
         reader.dispose();
+    }
+
+    public void loadFromData(double[] data, int nbRows, int nbCols) throws IOException, FlsgenException {
+        if (nbRows != grid.getNbRows() || nbCols != grid.getNbCols()) {
+            throw new FlsgenException("Input terrain raster must have the same dimensions as the landscape to generate");
+        }
+        dem = data;
     }
 
     public void generateDiamondSquare(double roughnessFactor) {
@@ -159,4 +165,7 @@ public class Terrain {
         exportRaster(x, y, resolution, resolution, epsg, dest);
     }
 
+    public double[] getData() {
+        return dem;
+    }
 }

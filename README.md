@@ -22,7 +22,7 @@ Java 8+ must be installed in your system to run flsgen. For the command-line int
 The most straightforward way to use fslgen is the command-line interface (CLI). Once Java is installed on your system, the only thing to do is to download the CLI jar file [here](https://github.com/dimitri-justeau/flsgen/releases/download/v1.1.0/flsgen-1.1.0.jar). To test that everything is working properly, from a terminal navigate to the folder where you downloaded the jar file and use the following command:
 
 ```bash
-java -jar flsgen-1.1.0.jar
+java -jar flsgen-1.2.0.jar
 ```
 
 You should get the following output:
@@ -40,7 +40,7 @@ Commands:
   terrain    Generate a fractal terrain using the Diamond-Square algorithm.
 ```
 
-To avoid typing `java -jar flsgen-1.1.0.jar` each time you need to use flsgen, you can create the following alias: `alias flsgen='java -jar flsgen-1.1.0.jar'` in your `.bashrc` or `.profile` file (in Linux). The following examples assume that this step has been done. If you did not create the alias, simply replace `flsgen` by `java -jar flsgen-1.1.0.jar`.
+To avoid typing `java -jar flsgen-1.2.0.jar` each time you need to use flsgen, you can create the following alias: `alias flsgen='java -jar flsgen-1.2.0.jar'` in your `.bashrc` or `.profile` file (in Linux). The following examples assume that this step has been done. If you did not create the alias, simply replace `flsgen` by `java -jar flsgen-1.2.0.jar`.
 
 ### Java API
 

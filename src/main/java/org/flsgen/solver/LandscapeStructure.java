@@ -137,6 +137,7 @@ public class LandscapeStructure {
             cl.put(LandscapeStructureSolver.KEY_PD, getPatchDensity(i));
             cl.put(LandscapeStructureSolver.KEY_SPI, getSmallestPatchIndex(i));
             cl.put(LandscapeStructureSolver.KEY_LPI, getLargestPatchIndex(i));
+            cl.put(LandscapeStructureSolver.IS_SQUARE, this.isSquare[i]);
             classes.add(cl);
         }
         json.put("classes", classes);

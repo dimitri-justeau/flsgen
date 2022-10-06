@@ -517,20 +517,7 @@ public class LandscapeGenerator {
                 y - (grid.getNbRows() * resolution_y), y,
                 crs
         );
-        int[] data;
-        if (grid instanceof PartialRegularSquareGrid) {
-            int noDataValue = (int) CheckLandscape.getNodataValue(structure.maskRasterPath);
-            data = new int[grid.getNbCols() * grid.getNbRows()];
-            for (int i = 0; i < data.length; i++) {
-                if (!((PartialRegularSquareGrid) grid).getDiscardSet().contains(i)) {
-                    data[i] = rasterGrid[((PartialRegularSquareGrid) grid).getPartialIndex(i)];
-                } else {
-                    data[i] = noDataValue;
-                }
-            }
-        } else {
-            data = IntStream.range(0, this.grid.getNbCells()).map(i -> rasterGrid[i]).toArray();
-        }
+        int[] data = getRasterData((int) CheckLandscape.getNodataValue(structure.maskRasterPath));
         WritableRaster rast = RasterFactory.createBandedRaster(
                 DataBuffer.TYPE_INT,
                 grid.getNbCols(), grid.getNbRows(),
@@ -547,6 +534,23 @@ public class LandscapeGenerator {
 
     public void exportRaster(double x, double y, double resolution, String epsg, String dest) throws IOException, FactoryException {
         exportRaster(x, y, resolution, resolution, epsg, dest);
+    }
+
+    public int[] getRasterData(int noDataValue) {
+        int[] data;
+        if (grid instanceof PartialRegularSquareGrid) {
+            data = new int[grid.getNbCols() * grid.getNbRows()];
+            for (int i = 0; i < data.length; i++) {
+                if (!((PartialRegularSquareGrid) grid).getDiscardSet().contains(i)) {
+                    data[i] = rasterGrid[((PartialRegularSquareGrid) grid).getPartialIndex(i)];
+                } else {
+                    data[i] = noDataValue;
+                }
+            }
+        } else {
+            data = IntStream.range(0, this.grid.getNbCells()).map(i -> rasterGrid[i]).toArray();
+        }
+        return data;
     }
 
     /**
