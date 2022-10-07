@@ -1,0 +1,27 @@
+{
+  "nbRows" : 500,
+  "nbCols" : 500,
+  "NON_FOCAL_PLAND": [10, 50],
+  "classes" : [
+    {
+      "name": "Class A",
+      "AREA": [0, 20000],
+      "AREA_MN": [1200, 1300],
+      "NP": [1, 20],
+      "PLAND": [10, 20],
+      "ALL_DIFFERENT": true
+    },
+    {
+      "name": "Class B",
+      "AREA": [0, 20000],
+      "NP": [1, 10],
+      "PLAND": [10, 20]
+    },
+    {
+      "name": "Class C",
+      "AREA": [0, 20000],
+      "NP": [1, 20],
+      "PLAND": [20, 30]
+    }
+  ]
+}

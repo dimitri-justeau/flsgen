@@ -47,7 +47,7 @@ To avoid typing `java -jar flsgen-1.2.0.jar` each time you need to use flsgen, y
 To use the Java API, you can either download flsgen jar file [here](https://github.com/dimitri-justeau/flsgen/releases/tag/1.0b) and add it to your classpath, or clone this Github repository and install flsgen as a local Maven dependency using the following command:
 
 ```bash
-mvn clean install
+mvn clean install -DskipTests
 ```
 
 <a name="tuto"></a>
@@ -101,8 +101,9 @@ You will get a fractal tif raster, e.g. :
 To achieve the same result with the Java API:
 
 ```java
-import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.flsgen.solver.Terrain;
+import org.flsgen.RegularSquareGrid;
+import org.flsgen.Terrain;
+import org.flsgen.RasterUtils;
 import org.opengis.referencing.FactoryException;
 
 import java.io.IOException;
@@ -113,7 +114,10 @@ public class FractalTerrainTest {
         RegularSquareGrid grid = new RegularSquareGrid(200, 200);
         Terrain t = new Terrain(grid);
         t.generateDiamondSquare(0.4);
-        t.exportRaster(0, 0, 0.01, "EPSG:4326", "terrain.tif");
+        RasterUtils.exportDoubleRaster(
+                t.getData(), t.getGrid(),
+                0, 0, 0.01, "EPSG:4326", "terrain.tif"
+        );
     }
 }
 ```
@@ -201,10 +205,12 @@ If there exist a landscape structure satisfying these targets, the program will 
 To achieve the same result with the Java API:
 
 ```java
-import org.flsgen.solver.LandscapeStructureSolver;
-import org.flsgen.solver.LandscapeStructure;
+import org.flsgen.LandscapeStructureSolver;
+import org.flsgen.LandscapeStructure;
+import org.flsgen.FlsgenException;
+import org.flsgen.solver.*;
 import com.github.cliftonlabs.json_simple.JsonException;
-import org.flsgen.exception.FlsgenException;
+import org.apache.commons.io.IOUtils;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -212,8 +218,10 @@ import java.io.IOException;
 
 public class StructureTest {
 
-    public static void main(String[] args) throws IOException, JsonException, FlsgenException { {
-        LandscapeStructureSolver ls = LandscapeStructureSolver.readFromJSON(new FileReader("target.json"));
+    public static void main(String[] args) throws IOException, JsonException, FlsgenException {
+        LandscapeStructureSolver ls = LandscapeStructureSolverFactory.readFromJSON(
+                IOUtils.toString(new FileReader("target.json"))
+        );
         ls.build();
         LandscapeStructure struct = ls.findSolution();
         FileWriter writer = new FileWriter("struct_target.json");
@@ -308,14 +316,16 @@ To achieve the same with the Java API:
 
 ```java
 import com.github.cliftonlabs.json_simple.JsonException;
-import org.flsgen.exception.FlsgenException;
-import org.flsgen.grid.neighborhood.INeighborhood;
-import org.flsgen.grid.neighborhood.Neighborhoods;
-import org.flsgen.grid.regular.square.RegularSquareGrid;
-import org.flsgen.solver.LandscapeStructure;
-import org.flsgen.solver.LandscapeGenerator
-import org.flsgen.solver.Terrain;;
+import ors.flsgen.RasterUtils;
+import org.flsgen.FlsgenException;
+import org.flsgen.INeighborhood;
+import org.flsgen.Neighborhoods;
+import org.flsgen.RegularSquareGrid;
+import org.flsgen.LandscapeStructure;
+import org.flsgen.LandscapeGenerator;
+import org.flsgen.Terrain;
 import org.opengis.referencing.FactoryException;
+import org.apache.commons.io.IOUtils;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -323,15 +333,19 @@ import java.io.IOException;
 public class GenerateTest {
 
     public static void main(String[] args) throws IOException, JsonException, FlsgenException, FactoryException {
-        LandscapeStructure structure = LandscapeStructure.fromJSON(new FileReader("struct_target.json"));
+        LandscapeStructure structure = LandscapeStructureSolverFactory.fromJSON(
+                IOUtils.toString(new FileReader("struct_target.json"))
+        );
         RegularSquareGrid grid = new RegularSquareGrid(200, 200);
         Terrain terrain = new Terrain(grid);
-        terrain.loadFromRaster("terrain.tif");
+        double[] terrainData = RasterUtils.loadDoubleDataFromRaster("terrain.tif", terrain.getGrid());
+        terrain.loadFromData(terrainData);
         INeighborhood neighborhood = Neighborhoods.FOUR_CONNECTED;
         INeighborhood distance = Neighborhoods.TWO_WIDE_FOUR_CONNECTED;
         LandscapeGenerator generator = new LandscapeGenerator(structure, neighborhood, distance, terrain);
         generator.generate(0.5, 10,10);
-        generator.exportRaster(0, 0, 0.001, "EPSG:4326", "landscape_struct_target.tif");
+        int[] rasterData = landscapeGenerator.getRasterData(noDataValue);
+        generator.exportRaster(rasterData, generator.getGrid(), 0, 0, 0.001, "EPSG:4326", "landscape_struct_target.tif");
     }
 }
 ```
@@ -342,7 +356,7 @@ It is possible to use a mask raster, whose NO_DATA cell will be unavailable for 
 
 ```json
 {
-  "maskRasterPath": "mask.tif"
+  "maskRasterPath": "mask.tif",
   "classes" : [
     {
       "name" : "Class A", 
